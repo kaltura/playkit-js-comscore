@@ -155,6 +155,8 @@ export default class Comscore extends BasePlugin {
   }
 
   _updateLabels(): void{
+    this.labels[comscoreLabels.PLAYER_NAME] = Comscore.PLUGIN_PLATFORM_NAME;
+    // this.labels[comscoreLabels.PLAYER_VERSION] = this.player.VERSION
     this._streamingAnalytics.getPlaybackSession().setLabels(this.labels);
   }
 
