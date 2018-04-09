@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+  <script src="https://cdnapisec.kaltura.com/p/2215841/embedPlaykitJs/uiconf_id/42237501/"></script>
+  <!-- <script src="http://kgit.html5video.org/pulls/3751/modules/ComscoreStreamingTag/resources/bin/streamsense.plugin.min.js"></script> -->
+  <!--<script src="http://localhost/player.js"></script>-->
+  <script src="./playkit-js-comscore.js"></script>
+</head>
+
+<body>
+  <div id="player-placeholder" style="width: 360px; height: 640px;"></div>
+  <script>
+    var mediaInfo = {
+      entryId: '1_fdv46dba',};
+    var playerConfig = {
+      logLevel: "OFF",
+      targetId:"player-placeholder",
+      provider:{
+        partnerId: 1740481,
+        uiConfId: 41565881
+      },
+      player: {
+        playback: {
+          "preload": "none",
+          "options": {
+            "html5": {
+              "hls": {
+              },
+              "dash": {
+              }
+            }
+          } ,
+        },
+        plugins: {
+          ima: {
+            adTagUrl: ''
+          },
+        }}
+    };
+
+    var kalturaPlayer = KalturaPlayer.setup(playerConfig);
+    kalturaPlayer.loadMedia(mediaInfo);
+  </script>
+</body>
+
+</html>
