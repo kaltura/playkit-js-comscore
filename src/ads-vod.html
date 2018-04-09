@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+  <script src="https://cdnapisec.kaltura.com/p/2215841/embedPlaykitJs/uiconf_id/42237501/"></script>
+  <script src="./playkit-js-comscore.js"></script>
+</head>
+<body>
+
+<div id="player-placeholder" style="width: 360px; height: 640px;"></div>
+
+
+<script>
+  var mediaInfo = {
+    entryId: '1_kbyh1guy',};
+  var playerConfig = {
+    logLevel: "OFF",
+    targetId:"player-placeholder",
+    provider:{
+      partnerId: 1740481,
+      uiConfId: 41565881
+    },
+    player: {
+      playback: {
+        "preload": "none",
+        "options": {
+          "html5": {
+            "hls": {
+            },
+            "dash": {
+            }
+          }
+        } ,
+      },
+      plugins: {
+        comscore:{},
+        ima: {
+          adTagUrl: 'http://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/124319096/external/ad_rule_samples&ciu_szs=300x250&ad_rule=1&impl=s&gdfp_req=1&env=vp&output=xml_vmap1&unviewed_position_start=1&cust_params=sample_ar%3Dpremidpostpod&cmsid=496&vid=short_onecue&correlator='
+        },
+      }}
+  };
+  var kalturaPlayer = KalturaPlayer.setup(playerConfig);
+  kalturaPlayer.loadMedia(mediaInfo);
+</script>
+</body>
+</html>
