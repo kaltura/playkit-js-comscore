@@ -7,7 +7,7 @@
   <script src="./playkit-js-comscore.js"></script>
 </head>
 <body>
-
+<input type="button" onclick="changeMedia()" value="Change Media"/>
 <div id="player-placeholder" style="width: 360px; height: 640px;"></div>
 
 
@@ -42,6 +42,10 @@
   };
   var kalturaPlayer = KalturaPlayer.setup(playerConfig);
   kalturaPlayer.loadMedia(mediaInfo);
+
+  function changeMedia(){
+    kalturaPlayer.loadMedia({entryId: '1_849bwkut'});
+  }
 </script>
 </body>
 </html>
