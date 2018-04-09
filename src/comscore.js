@@ -1,6 +1,7 @@
 // @flow
 import {BasePlugin} from 'playkit-js'
 import {Utils} from 'playkit-js'
+import ns_ from "../bin/streamsense.plugin.min.js"
 
 /**
  * Your class description.
@@ -15,7 +16,7 @@ export default class Comscore extends BasePlugin {
   _isBuffering: boolean;
 
   loadPromise: DeferredPromise;
-  static COMSCORE_LIB: string = "//localhost/streamsense.plugin.min.js";
+  static COMSCORE_LIB: string = "http://localhost:9001/build/bin/comscore.min.js";
 
 
 
@@ -52,9 +53,9 @@ export default class Comscore extends BasePlugin {
     super(name, player, config);
     let pluginOptions = config;
     this._trackEventMonitorCallbackName = config.trackEventMonitor;
-    this._init().then(()=>{
-      this._addBindings();
-    });
+    this._init();
+
+    this._addBindings();
 
     /**
      Now you have access to the BasePlugin members:
@@ -72,26 +73,29 @@ export default class Comscore extends BasePlugin {
    * @returns {void}
    */
   _init(): void {
-    this.loadPromise = Utils.Object.defer();
-    (this._isComscoreLoaded()
-      ? Promise.resolve()
-      : Utils.Dom.loadScriptAsync(this.config.libURL))
-      .then(() => {
-        this._streamingAnalytics = new ns_.StreamingAnalytics();
-        this._updateLabels();
-        this.loadPromise.resolve();
-      })
-      .catch((e) => {
-        this.loadPromise.reject(e);
-      });
-    return this.loadPromise;
+    this._streamingAnalytics = new ns_.StreamingAnalytics({
+      publisherId: "123456",
+      debug: true
+    });
+    // this.loadPromise = Utils.Object.defer();
+    // (this._isComscoreLoaded()
+    //   ? Promise.resolve()
+    //   : Utils.Dom.loadScriptAsync(this.config.libURL))
+    //   .then(() => {
+    //     this._streamingAnalytics = new ns_.StreamingAnalytics();
+    //     this._updateLabels();
+    //     this.loadPromise.resolve();
+    //   })
+    //   .catch((e) => {
+    //     this.loadPromise.reject(e);
+    //   });
+    // return this.loadPromise;
   }
 
   _addBindings(): void {
     this.eventManager.listen(this.player, this.player.Event.SOURCE_SELECTED, () => this._onSourceSelected());
     this.eventManager.listen(this.player, this.player.Event.ERROR, (event) => this._onError(event));
     this.player.ready().then(() => {
-      this._setInitialTracks();
       this.eventManager.listen(this.player, this.player.Event.PLAYING, () => this._onPlaying());
       this.eventManager.listen(this.player, this.player.Event.FIRST_PLAY, () => this._onFirstPlay());
       this.eventManager.listen(this.player, this.player.Event.SEEKING, () => this._onSeeking());
@@ -103,9 +107,9 @@ export default class Comscore extends BasePlugin {
       this.eventManager.listen(this.player, this.player.Event.AUDIO_TRACK_CHANGED, (event) => this._onAudioTrackChanged(event));
       this.eventManager.listen(this.player, this.player.Event.TEXT_TRACK_CHANGED, (event) => this._onTextTrackChanged(event));
       this.eventManager.listen(this.player, this.player.Event.PLAYER_STATE_CHANGED, (event) => this._onPlayerStateChanged(event));
-      this.eventManager.listen(this.player, this.player.EventType.AD_LOADED, (event) => this._onAdLoaded(event));
-      this.eventManager.listen(this.player, this.player.EventType.AD_STARTED, (event) => this._onAdStarted(event));
-      this.eventManager.listen(this.player, this.player.EventType.AD_BREAK_END, (event) => this._onAdEneded(event));
+      this.eventManager.listen(this.player, this.player.Event.AD_LOADED, (event) => this._onAdLoaded(event));
+      this.eventManager.listen(this.player, this.player.Event.AD_STARTED, (event) => this._onAdStarted(event));
+      this.eventManager.listen(this.player, this.player.Event.AD_BREAK_END, (event) => this._onAdEneded(event));
     });
   }
 
@@ -146,6 +150,10 @@ export default class Comscore extends BasePlugin {
       this._sendCommand("notifyPlay");
   }
 
+  _onFirstPlay(): void {
+    this._sendCommand('notifyPlay');
+}
+
   _onEnded(): void {
     this._sendCommand("notifyEnd");
   }
@@ -170,9 +178,9 @@ export default class Comscore extends BasePlugin {
 
   _sendCommand(command: string, argument: string): void {
     this.logger.debug("Going to send:" + command + "  with args:" + argument);
-    if (argument == undefined &&  !this.player.isLive() ){
-        argument = this.player.currentTime() * 1000;
-    }
+    // if (argument == undefined &&  !this.player.isLive() ){
+    //     argument = this.player.currentTime() * 1000;
+    // }
     try {
       this._streamingAnalytics[command](argument);
     } catch(e){
