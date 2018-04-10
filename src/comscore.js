@@ -243,7 +243,11 @@ export default class Comscore extends BasePlugin {
     // When playing content and an Ad is about to be played, a Pause event is triggered.
     if(this._isAd) return;
 
-    this._sendCommand("notifyPause");
+    // At the end of the playback we've notice there's an unexpected pause event.
+    // We won't notify this pause, only these happening at the middle of the playback.
+    if(Math.ceil(this.player.currentTime) < this.player.duration) {
+      this._sendCommand("notifyPause");
+    }
   }
 
   _onTimeUpdate(): void {
@@ -314,7 +318,7 @@ export default class Comscore extends BasePlugin {
     advertisementMetadataLabels['ns_st_pn'] = "1"; // Current part number of the ad. Always assume part 1.
     advertisementMetadataLabels['ns_st_tp'] = "1"; // Always assume ads have a total // Playlist title. of 1 parts.
 
-    if(advertisementMetadataLabels.extraAdData && advertisementMetadataObject.extraAdData.duration) {
+    if(advertisementMetadataObject.extraAdData && advertisementMetadataObject.extraAdData.duration) {
       advertisementMetadataLabels['ns_st_cl'] = Math.floor(advertisementMetadataObject.extraAdData.duration * 1000);
     }
 
