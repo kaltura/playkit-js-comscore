@@ -92,7 +92,7 @@ export default class Comscore extends BasePlugin {
 
   _getCurrentPosition(): void {
     if(this._isAd) {
-      return this._lastKnownPosition;
+      return this._lastKnownAdPosition;
     }
 
     return  Math.floor(this.player.currentTime * 1000);
@@ -154,7 +154,7 @@ export default class Comscore extends BasePlugin {
   _onAdStarted(event): void {
     this._gPlugin.setAsset(this._getAdvertisementMetadataLabels(this._adCachedAdvertisementMetadataObject, this.player.config), false, this._getContentMetadataObjects());
 
-    this._sendCommand('notifyPlay');
+    this._sendCommand('notifyPlay', 0);
   }
   _onAdResumed(event): void {
     this._sendCommand('notifyPlay');
@@ -174,6 +174,8 @@ export default class Comscore extends BasePlugin {
     } else {
       this._sendCommand('notifyEnd');
     }
+
+    this._lastKnownAdPosition = NaN;
   }
   _onAdError(event): void {
   }
@@ -214,6 +216,11 @@ export default class Comscore extends BasePlugin {
     }
   }
 
+  /**
+   * If seeking, a midroll may appear and if so a few ms of playback may also occur.
+   * Our tag will notify that playback.
+   * @returns {void}
+   * */
   _onSeeking(): void {
     this._log("Seeking from", this._lastKnownPosition, "to", this._getCurrentPosition());
 
@@ -226,7 +233,7 @@ export default class Comscore extends BasePlugin {
 
   _onFirstPlay(): void {
     this._sendCommand('notifyPlay');
-}
+  }
 
   _onEnded(): void {
     this._sendCommand("notifyEnd");
@@ -356,7 +363,7 @@ export default class Comscore extends BasePlugin {
     contentMetadataLabels['ns_st_pl'] = contentMetadataObject.name;
     contentMetadataLabels['ns_st_pr'] = contentMetadataObject.name;
     contentMetadataLabels['ns_st_ep'] = contentMetadataObject.name;
-    contentMetadataLabels['ns_st_cl'] = contentMetadataObject.duration; // or .duration in seconds
+    contentMetadataLabels['ns_st_cl'] = Math.floor(contentMetadataObject.duration * 1000);
     contentMetadataLabels['ns_st_ci'] = contentMetadataObject.id;
     contentMetadataLabels['ns_st_pn'] = this._assetPartNumber + ""; // TODO
     contentMetadataLabels['ns_st_tp'] = "0";
