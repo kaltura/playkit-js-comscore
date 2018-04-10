@@ -1,7 +1,7 @@
 // @flow
 import {BasePlugin} from 'playkit-js'
 import {Utils} from 'playkit-js'
-// import ns_ from "../bin/streamsense.plugin.min.js"
+import ns_ from "../bin/streamsense.plugin.min.js"
 
 /**
  * Your class description.
@@ -44,15 +44,9 @@ export default class Comscore extends BasePlugin {
 
     this._trackEventMonitorCallbackName = config.trackEventMonitor;
 
-    let loadPromise = this._loadPluginAsync();
-    loadPromise.then(()=> {
-      this._init();
-    });
+    this._init();
 
     this._assetPartNumber = 1;
-
-    // this._init();
-    // this._addBindings();
 
     /**
      Now you have access to the BasePlugin members:
@@ -62,25 +56,6 @@ export default class Comscore extends BasePlugin {
      4. player: Reference to the actual player.
      5. eventManager: The event manager of the plugin.
     */
-  }
-
-  /**
-   * Load the comScore library asynchronously to workaround the issue of loading the Generic Plugin using ES6.
-   * @private
-   * @returns {void}
-   * */
-  _loadPluginAsync(): void {
-    let loadPromise = Utils.Object.defer();
-
-    (this._isComscoreLoaded() ? Promise.resolve() : Utils.Dom.loadScriptAsync(Comscore.COMSCORE_LIB))
-      .then(() => {
-        loadPromise.resolve();
-      })
-      .catch((e) => {
-        loadPromise.reject(e);
-      });
-
-    return loadPromise;
   }
 
   /**
@@ -94,7 +69,6 @@ export default class Comscore extends BasePlugin {
 
       let pluginConfig = this._parsePluginConfig(this.config);
 
-      const ns_ = window.ns_;
       this._gPlugin = new ns_.StreamingAnalytics.Plugin(pluginConfig, Comscore.PLUGIN_PLATFORM_NAME, Comscore.PLUGIN_VERSION, window.KalturaPlayer.VERSION, {
         position: this._getCurrentPosition.bind(this),
         // preMeasurement: function (currentState, newEvent) {
@@ -155,49 +129,49 @@ export default class Comscore extends BasePlugin {
   }
 
   _onAdLoaded(event): void {
-    console.log("_onAdLoaded", event);
+    this._log("_onAdLoaded", event);
   }
   _onAdStarted(event): void {
-    console.log("_onAdStarted", event);
+    this._log("_onAdStarted", event);
   }
   _onAdResumed(event): void {
-    console.log("_onAdResumed", event);
+    this._log("_onAdResumed", event);
   }
   _onAdPaused(event): void {
-    console.log("_onAdPaused", event);
+    this._log("_onAdPaused", event);
   }
   _onAdClicked(event): void {
-    console.log("_onAdClicked", event);
+    this._log("_onAdClicked", event);
   }
   _onAdSkipped(event): void {
-    console.log("_onAdSkipped", event);
+    this._log("_onAdSkipped", event);
   }
   _onAdCompleted(event): void {
-    console.log("_onAdCompleted", event);
+    this._log("_onAdCompleted", event);
   }
   _onAdError(event): void {
-    console.log("_onAdError", event);
+    this._log("_onAdError", event);
   }
   _onAllAdsCompleted(event): void {
-    console.log("_onAllAdsCompleted", event);
+    this._log("_onAllAdsCompleted", event);
   }
   _onAdBreakStart(event): void {
-    console.log("_onAdBreakStart", event);
+    this._log("_onAdBreakStart", event);
   }
   _onAdBreakEnd(event): void {
-    console.log("_onAdBreakEnd", event);
+    this._log("_onAdBreakEnd", event);
   }
   _onUserClosedAd(event): void {
-    console.log("_onUserClosedAd", event);
+    this._log("_onUserClosedAd", event);
   }
   _onAdVolumeChanged(event): void {
-    console.log("_onAdVolumeChanged", event);
+    this._log("_onAdVolumeChanged", event);
   }
   _onAdMuted(event): void {
-    console.log("_onAdMuted", event);
+    this._log("_onAdMuted", event);
   }
   _onAdProgress(event): void {
-    console.log("_onAdProgress", event);
+    this._log("_onAdProgress", event);
   }
 
   _onVideoTrackChanged(event): void {
@@ -218,7 +192,8 @@ export default class Comscore extends BasePlugin {
   }
 
   _onSeeking(): void {
-    console.log("Seeking from", this._lastPosition, "to", this._getCurrentPosition());
+    this._log("Seeking from", this._lastPosition, "to", this._getCurrentPosition());
+
     this._sendCommand("notifySeekStart", this._lastPosition);
   }
 
@@ -239,8 +214,9 @@ export default class Comscore extends BasePlugin {
   }
 
   _onTimeUpdate(): void {
+    this._log("comscore", "_onTimeUpdate", this._getCurrentPosition());
+
     this._lastPosition = this._getCurrentPosition();
-    console.log("comscore", "_onTimeUpdate", this._getCurrentPosition());
   }
 
   _isComscoreLoaded(): boolean {
@@ -348,7 +324,7 @@ export default class Comscore extends BasePlugin {
       assetMetadataLabels.ns_st_tp = "0";
       assetMetadataLabels.ns_st_ct = "vc00"; //TODO when knowing the total parts?
 
-      // assetMetadataLabels.ns_st_ct = playerAPIHelpers.isAudio() ? "ac00" : "vc00";
+      assetMetadataLabels.ns_st_ct = this.player.config.type == 'Audio' ? "ac00" : "vc00";
     // }
 
     return {}; // TODO
@@ -390,5 +366,13 @@ export default class Comscore extends BasePlugin {
     };
 
     return comScorePlugin;
+  }
+
+  _log(): void {
+    const args = Array.from(arguments);
+    args.unshift("comScore plugin:");
+
+    this.logger.debug.apply(this.logger, args);
+    // this.logger.debug("The comScore onReady event was triggered.");
   }
 }
