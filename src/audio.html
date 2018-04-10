@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+  <script src="https://cdnapisec.kaltura.com/p/2215841/embedPlaykitJs/uiconf_id/42237501/"></script>
+  <script src="./playkit-js-comscore.js"></script>
+</head>
+
+<body>
+<input type="button" onclick="changeMedia()" value="Change Media"/>
+
+  <div id="player-placeholder" style="width: 360px; height: 640px;"></div>
+  <script>
+    let config = {
+      "provider":
+        { "partnerId": "2215841", "uiConfId": "42237501" }
+      , "targetId": "player-placeholder",
+      "player":
+        { plugins: { comscore: {
+          labels:{
+              x:1,y:2
+              }
+            } } }
+    }
+
+
+    var kalturaPlayer = KalturaPlayer.setup(config);
+    kalturaPlayer.loadMedia({ entryId: "1_w2i7tf7c" });
+    function changeMedia(){
+      kalturaPlayer.loadMedia({entryId: '1_j09ivavh'});
+    }
+  </script>
+</body>
+
+</html>
