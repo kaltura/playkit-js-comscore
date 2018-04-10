@@ -1,7 +1,6 @@
 // @flow
-import {BasePlugin} from 'playkit-js'
-import {Utils} from 'playkit-js'
-import ns_ from "../bin/streamsense.plugin.min.js"
+import {BasePlugin, MediaType, Utils} from 'playkit-js'
+import ns_ from "../bin/streamsense.plugin.DONOTPUSH.js"
 
 /**
  * Your class description.
@@ -15,10 +14,13 @@ export default class Comscore extends BasePlugin {
   labels: Object;
   _isBuffering: boolean;
   _gPlugin: Object;
-  _lastPosition: Number;
+  _lastKnownPosition: Number;
+  _lastKnownAdPosition: Number;
   _assetPartNumber: Number;
+  _isAd: boolean = false;
+  _adCachedAdvertisementMetadataObject: Object;
 
-  static COMSCORE_LIB: string = "http://localhost:9002/build/src/streamsense.plugin.js";
+  _gPluginPromise: Promise<*>;
 
   static PLUGIN_VERSION = "2.0";
   static PLUGIN_PLATFORM_NAME = "kaltura";
@@ -64,6 +66,8 @@ export default class Comscore extends BasePlugin {
    * @returns {void}
    */
   _init(): void {
+    this._gPluginPromise = Utils.Object.defer();
+
     this.player.ready().then(() => {
       this.logger.debug("The comScore onReady event was triggered.");
 
@@ -79,49 +83,61 @@ export default class Comscore extends BasePlugin {
         //   return true;
         // }
       });
+
+      this._gPluginPromise.resolve();
     });
 
     this._addBindings();
   }
 
   _getCurrentPosition(): void {
+    if(this._isAd) {
+      return this._lastKnownPosition;
+    }
+
     return  Math.floor(this.player.currentTime * 1000);
   }
 
   _addBindings(): void {
-    this.eventManager.listen(this.player, this.player.Event.SOURCE_SELECTED, () => this._onSourceSelected());
-    this.eventManager.listen(this.player, this.player.Event.ERROR, (event) => this._onError(event));
+    let listeners = {
+      [this.player.Event.SOURCE_SELECTED]: this._onSourceSelected,
+      [this.player.Event.ERROR]: this._onError,
+      [this.player.Event.FIRST_PLAY]: this._onFirstPlay,
+      [this.player.Event.PLAYING]: this._onPlaying,
+      [this.player.Event.SEEKING]: this._onSeeking,
+      [this.player.Event.PAUSE]: this._onPause,
+      [this.player.Event.ENDED]: this._onEnded,
+      [this.player.Event.TIME_UPDATE]: this._onTimeUpdate,
+      [this.player.Event.VIDEO_TRACK_CHANGED]: this._onVideoTrackChanged,
+      [this.player.Event.AUDIO_TRACK_CHANGED]: this._onAudioTrackChanged,
+      [this.player.Event.TEXT_TRACK_CHANGED]: this._onTextTrackChanged,
+      [this.player.Event.PLAYER_STATE_CHANGED]: this._onPlayerStateChanged,
+      [this.player.Event.AD_LOADED]: this._onAdLoaded,
+      [this.player.Event.AD_STARTED]: this._onAdStarted,
+      [this.player.Event.AD_RESUMED]: this._onAdResumed,
+      [this.player.Event.AD_PAUSED]: this._onAdPaused,
+      [this.player.Event.AD_CLICKED]: this._onAdClicked,
+      [this.player.Event.AD_SKIPPED]: this._onAdSkipped,
+      [this.player.Event.AD_COMPLETED]: this._onAdCompleted,
+      [this.player.Event.AD_ERROR]: this._onAdError,
+      [this.player.Event.ALL_ADS_COMPLETED]: this._onAllAdsCompleted,
+      [this.player.Event.AD_BREAK_START]: this._onAdBreakStart,
+      [this.player.Event.AD_BREAK_END]: this._onAdBreakEnd,
+      [this.player.Event.USER_CLOSED_AD]: this._onUserClosedAd,
+      [this.player.Event.AD_VOLUME_CHANGED]: this._onAdVolumeChanged,
+      [this.player.Event.AD_MUTED]: this._onAdMuted,
+      [this.player.Event.AD_PROGRESS]: this._onAdProgress,
+    };
 
-    this.eventManager.listen(this.player, this.player.Event.FIRST_PLAY, () => this._onFirstPlay());
-    this.eventManager.listen(this.player, this.player.Event.PLAYING, () => this._onPlaying());
-    this.eventManager.listen(this.player, this.player.Event.SEEKING, () => this._onSeeking());
-    this.eventManager.listen(this.player, this.player.Event.PAUSE, () => this._onPause());
-    this.eventManager.listen(this.player, this.player.Event.ENDED, () => this._onEnded());
-    this.eventManager.listen(this.player, this.player.Event.TIME_UPDATE, () => this._onTimeUpdate());
+    for (const [eventName, listener] of Object.entries(listeners)) {
+      this.eventManager.listen(this.player, eventName, (event) => {
+        this._gPluginPromise.then(() => {
+          this._log("Event:", eventName, event);
 
-    this.eventManager.listen(this.player, this.player.Event.VIDEO_TRACK_CHANGED, (event) => this._onVideoTrackChanged(event));
-    this.eventManager.listen(this.player, this.player.Event.AUDIO_TRACK_CHANGED, (event) => this._onAudioTrackChanged(event));
-    this.eventManager.listen(this.player, this.player.Event.TEXT_TRACK_CHANGED, (event) => this._onTextTrackChanged(event));
-    this.eventManager.listen(this.player, this.player.Event.PLAYER_STATE_CHANGED, (event) => this._onPlayerStateChanged(event));
-
-    this.eventManager.listen(this.player, this.player.Event.AD_LOADED, (event) => this._onAdLoaded(event));
-    this.eventManager.listen(this.player, this.player.Event.AD_STARTED, (event) => this._onAdStarted(event));
-    this.eventManager.listen(this.player, this.player.Event.AD_RESUMED, (event) => this._onAdResumed(event));
-    this.eventManager.listen(this.player, this.player.Event.AD_PAUSED, (event) => this._onAdPaused(event));
-    this.eventManager.listen(this.player, this.player.Event.AD_CLICKED, (event) => this._onAdClicked(event));
-    this.eventManager.listen(this.player, this.player.Event.AD_SKIPPED, (event) => this._onAdSkipped(event));
-    this.eventManager.listen(this.player, this.player.Event.AD_COMPLETED, (event) => this._onAdCompleted(event));
-    this.eventManager.listen(this.player, this.player.Event.AD_ERROR, (event) => this._onAdError(event));
-    this.eventManager.listen(this.player, this.player.Event.ALL_ADS_COMPLETED, (event) => this._onAllAdsCompleted(event));
-    this.eventManager.listen(this.player, this.player.Event.AD_BREAK_START, (event) => this._onAdBreakStart(event));
-    this.eventManager.listen(this.player, this.player.Event.AD_BREAK_END, (event) => this._onAdBreakEnd(event));
-    this.eventManager.listen(this.player, this.player.Event.AD_FIRST_QUARTILE, (event) => this._onAdFirstQuartile(event));
-    this.eventManager.listen(this.player, this.player.Event.AD_MIDPOINT, (event) => this._onAdMidpoint(event));
-    this.eventManager.listen(this.player, this.player.Event.AD_THIRD_QUARTILE, (event) => this._onAdThirdQuartile(event));
-    this.eventManager.listen(this.player, this.player.Event.USER_CLOSED_AD, (event) => this._onUserClosedAd(event));
-    this.eventManager.listen(this.player, this.player.Event.AD_VOLUME_CHANGED, (event) => this._onAdVolumeChanged(event));
-    this.eventManager.listen(this.player, this.player.Event.AD_MUTED, (event) => this._onAdMuted(event));
-    this.eventManager.listen(this.player, this.player.Event.AD_PROGRESS, (event) => this._onAdProgress(event));
+          listener.call(this, event);
+        });
+      });
+    }
   }
 
   _onError(event: ErrorEvent): void {
@@ -129,62 +145,69 @@ export default class Comscore extends BasePlugin {
   }
 
   _onAdLoaded(event): void {
-    this._log("_onAdLoaded", event);
+    this._adCachedAdvertisementMetadataObject = event.payload;
+  }
+
+  _onAdBreakStart(event): void {
+    this._isAd = true;
   }
   _onAdStarted(event): void {
-    this._log("_onAdStarted", event);
+    this._gPlugin.setAsset(this._getAdvertisementMetadataLabels(this._adCachedAdvertisementMetadataObject, this.player.config), false, this._getContentMetadataObjects());
+
+    this._sendCommand('notifyPlay');
   }
   _onAdResumed(event): void {
-    this._log("_onAdResumed", event);
+    this._sendCommand('notifyPlay');
   }
   _onAdPaused(event): void {
-    this._log("_onAdPaused", event);
+    this._sendCommand('notifyPause');
   }
   _onAdClicked(event): void {
-    this._log("_onAdClicked", event);
   }
   _onAdSkipped(event): void {
-    this._log("_onAdSkipped", event);
+    this._sendCommand('notifySkipAd');
   }
   _onAdCompleted(event): void {
-    this._log("_onAdCompleted", event);
+    if(this._adCachedAdvertisementMetadataObject.extraAdData && this._adCachedAdvertisementMetadataObject.extraAdData.duration) {
+      let duration = Math.floor(this._adCachedAdvertisementMetadataObject.extraAdData.duration * 1000);
+      this._sendCommand('notifyEnd', duration);
+    } else {
+      this._sendCommand('notifyEnd');
+    }
   }
   _onAdError(event): void {
-    this._log("_onAdError", event);
   }
   _onAllAdsCompleted(event): void {
-    this._log("_onAllAdsCompleted", event);
-  }
-  _onAdBreakStart(event): void {
-    this._log("_onAdBreakStart", event);
   }
   _onAdBreakEnd(event): void {
-    this._log("_onAdBreakEnd", event);
+    this._isAd = false;
+
+    // We've finished with the ad break, moving back to content asset.
+    this._gPlugin.setAsset(this._getContentMetadataLabels(this.player.config), false, this._getContentMetadataObjects());
   }
   _onUserClosedAd(event): void {
-    this._log("_onUserClosedAd", event);
   }
   _onAdVolumeChanged(event): void {
-    this._log("_onAdVolumeChanged", event);
   }
   _onAdMuted(event): void {
-    this._log("_onAdMuted", event);
   }
   _onAdProgress(event): void {
-    this._log("_onAdProgress", event);
+    this._lastKnownAdPosition = Math.floor(event.payload.adProgress.currentTime);
   }
 
   _onVideoTrackChanged(event): void {
     // TODO
   }
 
-  _onPlayerStateChanged(event: FakeEvent): void {
+  _onPlayerStateChanged(event): void {
     const oldState = event.payload.oldState;
     const newState = event.payload.newState;
+
     if (oldState.type === this.player.State.BUFFERING) {
       this._isBuffering = false;
       this._sendCommand("notifyBufferStop");
     }
+
     if (newState.type === this.player.State.BUFFERING) {
       this._isBuffering = true;
       this._sendCommand("notifyBufferStart");
@@ -192,9 +215,9 @@ export default class Comscore extends BasePlugin {
   }
 
   _onSeeking(): void {
-    this._log("Seeking from", this._lastPosition, "to", this._getCurrentPosition());
+    this._log("Seeking from", this._lastKnownPosition, "to", this._getCurrentPosition());
 
-    this._sendCommand("notifySeekStart", this._lastPosition);
+    this._sendCommand("notifySeekStart", this._lastKnownPosition);
   }
 
   _onPlaying(): void{
@@ -209,25 +232,25 @@ export default class Comscore extends BasePlugin {
     this._sendCommand("notifyEnd");
   }
 
-  _onPause(): void{
+  _onPause(): void {
+    // When playing content and an Ad is about to be played, a Pause event is triggered.
+    if(this._isAd) return;
+
     this._sendCommand("notifyPause");
   }
 
   _onTimeUpdate(): void {
     this._log("comscore", "_onTimeUpdate", this._getCurrentPosition());
 
-    this._lastPosition = this._getCurrentPosition();
-  }
-
-  _isComscoreLoaded(): boolean {
-    return window.ns_;
+    this._lastKnownPosition = this._getCurrentPosition();
   }
 
   _onSourceSelected(): void {
-    this._changeAsset()
+    this._gPlugin.createPlaybackSession();
+    this._gPlugin.setAsset(this._getContentMetadataLabels(this.player.config), false, this._getContentMetadataObjects());
   }
 
-  _sendCommand(notifyCommandName: string, position: string): void {
+  _sendCommand(notifyCommandName: string, position: Number): void {
     this.logger.debug("Going to send:" + notifyCommandName + "  with position:" + position);
 
     try {
@@ -259,82 +282,102 @@ export default class Comscore extends BasePlugin {
   // Write logic
   }
 
-  _changeAsset(): void {
-    this._gPlugin.createPlaybackSession();
-    this._gPlugin.setAsset(this._getAssetMetadataLabels(), false, this._getAssetMetadataObjects());
-  }
+  _getAdvertisementMetadataLabels(advertisementMetadataObject, relatedContentMetadataObject): Object {
+    const advertisementMetadataLabels = {};
+    const contentMetadataLabels = this._getContentMetadataLabels(relatedContentMetadataObject);
 
-  _getAssetMetadataLabels(mediaMetadata): Object {
-    var assetMetadataLabels = {};
-
-    // // Audio is not tested.
-    // assetMetadataLabels.ns_st_ty = playerAPIHelpers.isAudio() ? "audio" : 'audio';
-
-    assetMetadataLabels.ns_st_pl = mediaMetadata.name;
-    assetMetadataLabels.ns_st_pr = mediaMetadata.name;
-    assetMetadataLabels.ns_st_ep = mediaMetadata.name;
-
-    if (this.player.isLive()) {
-      assetMetadataLabels.ns_st_li = "1";
+    if(contentMetadataLabels['ns_st_pl']) {
+      advertisementMetadataLabels['ns_st_pl'] = contentMetadataLabels['ns_st_pl'];
+    }
+    if(contentMetadataLabels['ns_st_pr']) {
+      advertisementMetadataLabels['ns_st_pr'] = contentMetadataLabels['ns_st_pr'];
+    }
+    if(contentMetadataLabels['ns_st_ep']){
+      advertisementMetadataLabels['ns_st_ep'] = contentMetadataLabels['ns_st_ep'];
     }
 
-    // // Audio only Ads needs to be tested.
-    // if (isAd) {
-    //   // assetMetadataLabels.ns_st_ci = adInfo.adId;
-    //   // assetMetadataLabels.ns_st_pn = "1"; // Current part number of the ad. Always assume part 1.
-    //   // assetMetadataLabels.ns_st_tp = "1"; // Always assume ads have a total // Playlist title. of 1 parts.
-    //   // assetMetadataLabels.ns_st_cl = Math.floor(adInfo.adDuration * 1000); // Length of the ad in milliseconds.
-    //   //
-    //   // assetMetadataLabels.ns_st_an = adNumber + "";
-    //   //
-    //   // if (adInfo.adType == 'preroll') {
-    //   //   assetMetadataLabels.ns_st_ad = "pre-roll";
-    //   //   assetMetadataLabels.ns_st_ct = "va11";
-    //   // } else if (adInfo.adType == 'postroll') {
-    //   //   assetMetadataLabels.ns_st_ad = "post-roll";
-    //   //   assetMetadataLabels.ns_st_ct = "va13";
-    //   // } else if (adInfo.adType == 'midroll') {
-    //   //   assetMetadataLabels.ns_st_ad = "mid-roll";
-    //   //   assetMetadataLabels.ns_st_ct = "va12";
-    //   // } else {
-    //   //   // This should never happen.
-    //   //   assetMetadataLabels.ns_st_ad = 1;
-    //   // }
-    //   //
-    //   // if(adInfo.adSystem)
-    //   //   assetMetadataLabels.ns_st_ams = adInfo.adSystem.toLowerCase();
-    //   //
-    //   // if (adInfo.adTitle)
-    //   //   assetMetadataLabels.ns_st_amt = adInfo.adTitle;
-    //
-    // } else {
+    if (this.player.isLive()) {
+      advertisementMetadataLabels['ns_st_li'] = "1";
+    }
 
-      // //It might not have the final value at this point (0x0 instead)
-      // if (mediaProxyEntry.width && mediaProxyEntry.height)
-      //   assetMetadataLabels.ns_st_cs = mediaProxyEntry.width + "x" + mediaProxyEntry.height;
-      // else
-      //   assetMetadataLabels.ns_st_cs = "0x0";
-      //
-      // if (mediaProxyEntry.downloadUrl)
-      //   assetMetadataLabels.ns_st_cu = mediaProxyEntry.downloadUrl;
+    if(advertisementMetadataObject.extraAdData && advertisementMetadataObject.extraAdData.adId) {
+      advertisementMetadataLabels['ns_st_ci'] = advertisementMetadataObject.extraAdData.adId + '';
+    }
 
-      assetMetadataLabels.ns_st_cl = mediaMetadata.duration; // or .duration in seconds
-      assetMetadataLabels.ns_st_ci = mediaMetadata.id;
-      assetMetadataLabels.ns_st_pn = this._assetPartNumber + "";
-      assetMetadataLabels.ns_st_tp = "0";
-      assetMetadataLabels.ns_st_ct = "vc00"; //TODO when knowing the total parts?
+    advertisementMetadataLabels['ns_st_pn'] = "1"; // Current part number of the ad. Always assume part 1.
+    advertisementMetadataLabels['ns_st_tp'] = "1"; // Always assume ads have a total // Playlist title. of 1 parts.
 
-      assetMetadataLabels.ns_st_ct = this.player.config.type == 'Audio' ? "ac00" : "vc00";
-    // }
+    if(advertisementMetadataLabels.extraAdData && advertisementMetadataObject.extraAdData.duration) {
+      advertisementMetadataLabels['ns_st_cl'] = Math.floor(advertisementMetadataObject.extraAdData.duration * 1000);
+    }
 
-    return {}; // TODO
+    // advertisementMetadataLabels.ns_st_an = adNumber + ""; TODO
+
+    if (advertisementMetadataObject.adType == 'preroll') {
+      advertisementMetadataLabels['ns_st_ad'] = "pre-roll";
+      advertisementMetadataLabels['ns_st_ct'] = "va11";
+    } else if (advertisementMetadataObject.adType == 'postroll') {
+      advertisementMetadataLabels['ns_st_ad'] = "post-roll";
+      advertisementMetadataLabels['ns_st_ct'] = "va13";
+    } else if (advertisementMetadataObject.adType == 'midroll') {
+      advertisementMetadataLabels['ns_st_ad'] = "mid-roll";
+      advertisementMetadataLabels['ns_st_ct'] = "va12";
+    } else {
+      // This should never happen.
+      advertisementMetadataLabels['ns_st_ad'] = 1;
+    }
+
+    if(advertisementMetadataObject.extraAdData && advertisementMetadataObject.extraAdData.adSystem) {
+      advertisementMetadataLabels['ns_st_ams'] = advertisementMetadataObject.extraAdData.adSystem.toLowerCase();
+    }
+
+    if (advertisementMetadataObject.extraAdData && advertisementMetadataObject.extraAdData.adTitle) {
+      advertisementMetadataLabels['ns_st_amt'] = advertisementMetadataObject.extraAdData.adTitle;
+    }
+
+    return advertisementMetadataLabels;
   }
 
-  _getAssetMetadataObjects(): Object {
+  _getContentMetadataLabels(contentMetadataObject): Object {
+    let contentMetadataLabels = {};
+
+    if (this.player.isLive()) {
+      contentMetadataLabels['ns_st_li'] = "1";
+    }
+
+    if(this.player.config.type == MediaType.AUDIO) {
+      contentMetadataLabels['ns_st_ct'] = 'ac00';
+      contentMetadataLabels['ns_st_ty'] = 'audio';
+    } else {
+      contentMetadataLabels['ns_st_ct'] = 'vc00';
+      contentMetadataLabels['ns_st_ty'] = 'video';
+    }
+
+    contentMetadataLabels['ns_st_pl'] = contentMetadataObject.name;
+    contentMetadataLabels['ns_st_pr'] = contentMetadataObject.name;
+    contentMetadataLabels['ns_st_ep'] = contentMetadataObject.name;
+    contentMetadataLabels['ns_st_cl'] = contentMetadataObject.duration; // or .duration in seconds
+    contentMetadataLabels['ns_st_ci'] = contentMetadataObject.id;
+    contentMetadataLabels['ns_st_pn'] = this._assetPartNumber + ""; // TODO
+    contentMetadataLabels['ns_st_tp'] = "0";
+    contentMetadataLabels['ns_st_cs'] = "0x0";
+
+    // tODO
+    // if (mediaProxyEntry.downloadUrl)
+    //   contentMetadataLabels['ns_st_cu'] = mediaProxyEntry.downloadUrl;
+
+    return contentMetadataLabels;
+  }
+
+  _getContentMetadataObjects(): Object {
     return [
       {
         prefix: '',
         map: this.player.config.metadata
+      },
+      {
+        prefix: 'clip',
+        map: this.player.config
       },
       {
         prefix: 'content',
