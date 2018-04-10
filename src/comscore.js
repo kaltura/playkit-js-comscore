@@ -73,15 +73,10 @@ export default class Comscore extends BasePlugin {
 
       let pluginConfig = this._parsePluginConfig(this.config);
 
+      this._trackEventMonitor('Configured publisherId', pluginConfig['publisherId']);
+
       this._gPlugin = new ns_.StreamingAnalytics.Plugin(pluginConfig, Comscore.PLUGIN_PLATFORM_NAME, Comscore.PLUGIN_VERSION, window.KalturaPlayer.VERSION, {
-        position: this._getCurrentPosition.bind(this),
-        // preMeasurement: function (currentState, newEvent) {
-        //   var apiCallName = 'notify' + eventTypeToAPICallMapping[newEvent];
-        //
-        //   trackEventMonitorLoggingNotify(apiCallName, getCurrentPosition());
-        //
-        //   return true;
-        // }
+        position: this._getCurrentPosition.bind(this)
       });
 
       this._gPluginPromise.resolve();
@@ -262,7 +257,8 @@ export default class Comscore extends BasePlugin {
   }
 
   _sendCommand(notifyCommandName: string, position: Number): void {
-    this.logger.debug("Going to send:" + notifyCommandName + "  with position:" + position);
+    this.logger.debug("comScore notification:" + notifyCommandName + "  with position:" + position);
+    this._trackEventMonitor(notifyCommandName + (position == null ? '' : ' with Position:' + position));
 
     try {
       this._gPlugin[notifyCommandName](position);
@@ -416,8 +412,11 @@ export default class Comscore extends BasePlugin {
 
     let comScorePlugin = {
       publisherId: this.player.config.session && this.player.config.session.partnerId,
-      debug: pluginConfig.debug || true
     };
+
+    if('debug' in pluginConfig) {
+      comScorePlugin['debug'] = pluginConfig['debug'];
+    }
 
     return comScorePlugin;
   }
@@ -428,5 +427,14 @@ export default class Comscore extends BasePlugin {
 
     this.logger.debug.apply(this.logger, args);
     // this.logger.debug("The comScore onReady event was triggered.");
+  }
+
+  _trackEventMonitor(): void {
+    if(typeof window[this._trackEventMonitorCallbackName] != 'function') return;
+
+    const args = Array.from(arguments);
+    args.unshift('comScore');
+
+    window[this._trackEventMonitorCallbackName](args);
   }
 }
