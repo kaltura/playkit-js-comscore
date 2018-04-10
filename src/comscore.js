@@ -404,7 +404,7 @@ export default class Comscore extends BasePlugin {
     pluginConfig = pluginConfig || {};
 
     let comScorePlugin = {
-      publisherId: this.player.config.session && this.player.config.session.partnerId || pluginConfig.publisherId,
+      publisherId: this.player.config.session && this.player.config.session.partnerId,
       debug: pluginConfig.debug || true
     };
 
