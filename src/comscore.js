@@ -7,17 +7,13 @@ import ns_ from "../bin/streamsense.plugin.min.js"
  * @classdesc
  */
 export default class Comscore extends BasePlugin {
-
-
-  _streamingAnalytics: any;
   _trackEventMonitorCallbackName: string;
-  labels: Object;
-  _isBuffering: boolean;
   _gPlugin: Object;
   _lastKnownPosition: Number;
   _lastKnownAdPosition: Number;
-  _assetPartNumber: Number;
+  _assetPartNumber: Number; // TODO
   _isAd: boolean = false;
+  _isLive: boolean = false;
   _adCachedAdvertisementMetadataObject: Object;
 
   _gPluginPromise: Promise<*>;
@@ -26,8 +22,8 @@ export default class Comscore extends BasePlugin {
   static PLUGIN_PLATFORM_NAME = "kaltura";
 
   /**
-   * TODO: Define under what conditions the plugin is valid.
    * @static
+   * @override
    * @public
    * @returns {boolean} - Whether the plugin is valid.
    */
@@ -49,15 +45,6 @@ export default class Comscore extends BasePlugin {
     this._init();
 
     this._assetPartNumber = 1;
-
-    /**
-     Now you have access to the BasePlugin members:
-     1. config: The runtime configuration of the plugin.
-     2. name: The name of the plugin.
-     3. logger: The logger of the plugin.
-     4. player: Reference to the actual player.
-     5. eventManager: The event manager of the plugin.
-    */
   }
 
   /**
@@ -90,7 +77,12 @@ export default class Comscore extends BasePlugin {
       return this._lastKnownAdPosition;
     }
 
-    return  Math.floor(this.player.currentTime * 1000);
+    if(this._isLive) {
+      return NaN;
+    }
+
+    let reportedPosition = this.player.currentTime;
+    return Math.floor(reportedPosition * 1000);
   }
 
   _addBindings(): void {
@@ -103,10 +95,15 @@ export default class Comscore extends BasePlugin {
       [this.player.Event.PAUSE]: this._onPause,
       [this.player.Event.ENDED]: this._onEnded,
       [this.player.Event.TIME_UPDATE]: this._onTimeUpdate,
-      [this.player.Event.VIDEO_TRACK_CHANGED]: this._onVideoTrackChanged,
+      [this.player.Event.RATE_CHANGE]: this._onRateChange,
+      [this.player.Event.PLAYER_STATE_CHANGED]: this._onPlayerStateChanged,
+
       [this.player.Event.AUDIO_TRACK_CHANGED]: this._onAudioTrackChanged,
       [this.player.Event.TEXT_TRACK_CHANGED]: this._onTextTrackChanged,
-      [this.player.Event.PLAYER_STATE_CHANGED]: this._onPlayerStateChanged,
+      [this.player.Event.ENTER_FULLSCREEN]: this._onEnterFullscreen,
+      [this.player.Event.EXIT_FULLSCREEN]: this._onExitFullScreen,
+      [this.player.Event.VOLUME_CHANGE]: this._onVolumeChange,
+
       [this.player.Event.AD_LOADED]: this._onAdLoaded,
       [this.player.Event.AD_STARTED]: this._onAdStarted,
       [this.player.Event.AD_RESUMED]: this._onAdResumed,
@@ -118,9 +115,6 @@ export default class Comscore extends BasePlugin {
       [this.player.Event.ALL_ADS_COMPLETED]: this._onAllAdsCompleted,
       [this.player.Event.AD_BREAK_START]: this._onAdBreakStart,
       [this.player.Event.AD_BREAK_END]: this._onAdBreakEnd,
-      [this.player.Event.USER_CLOSED_AD]: this._onUserClosedAd,
-      [this.player.Event.AD_VOLUME_CHANGED]: this._onAdVolumeChanged,
-      [this.player.Event.AD_MUTED]: this._onAdMuted,
       [this.player.Event.AD_PROGRESS]: this._onAdProgress,
     };
 
@@ -135,7 +129,7 @@ export default class Comscore extends BasePlugin {
     }
   }
 
-  _onError(event: ErrorEvent): void {
+  _onError(event): void {
     //TODO: Check if error is critical and if so send ended
   }
 
@@ -174,26 +168,17 @@ export default class Comscore extends BasePlugin {
   }
   _onAdError(event): void {
   }
-  _onAllAdsCompleted(event): void {
+  _onAllAdsCompleted(): void {
+    this._isAd = false;
   }
-  _onAdBreakEnd(event): void {
+  _onAdBreakEnd(): void {
     this._isAd = false;
 
     // We've finished with the ad break, moving back to content asset.
     this._gPlugin.setAsset(this._getContentMetadataLabels(this.player.config), false, this._getContentMetadataObjects());
   }
-  _onUserClosedAd(event): void {
-  }
-  _onAdVolumeChanged(event): void {
-  }
-  _onAdMuted(event): void {
-  }
   _onAdProgress(event): void {
     this._lastKnownAdPosition = Math.floor(event.payload.adProgress.currentTime);
-  }
-
-  _onVideoTrackChanged(event): void {
-    // TODO
   }
 
   _onPlayerStateChanged(event): void {
@@ -201,12 +186,10 @@ export default class Comscore extends BasePlugin {
     const newState = event.payload.newState;
 
     if (oldState.type === this.player.State.BUFFERING) {
-      this._isBuffering = false;
       this._sendCommand("notifyBufferStop");
     }
 
     if (newState.type === this.player.State.BUFFERING) {
-      this._isBuffering = true;
       this._sendCommand("notifyBufferStart");
     }
   }
@@ -217,9 +200,17 @@ export default class Comscore extends BasePlugin {
    * @returns {void}
    * */
   _onSeeking(): void {
-    this._log("Seeking from", this._lastKnownPosition, "to", this._getCurrentPosition());
+    if(this._isLive) {
+      this._sendCommand("notifySeekStart");
 
-    this._sendCommand("notifySeekStart", this._lastKnownPosition);
+      let dvrWindowLength = Math.floor(this.player.duration * 1000);
+      let dvrWindowOffsetPosition = Math.floor(dvrWindowLength - Math.floor(this.player.currentTime * 1000), 0);
+
+      this._gPlugin.setDvrWindowOffset(dvrWindowOffsetPosition);
+      this._gPlugin.setDvrWindowLength(dvrWindowLength);
+    } else {
+      this._sendCommand("notifySeekStart", this._lastKnownPosition);
+    }
   }
 
   _onPlaying(): void{
@@ -246,14 +237,56 @@ export default class Comscore extends BasePlugin {
   }
 
   _onTimeUpdate(): void {
-    this._log("comscore", "_onTimeUpdate", this._getCurrentPosition());
+    if(this._isLive) {
+      let dvrWindowLength = Math.floor(this.player.duration * 1000);
+      let dvrWindowOffsetPosition = Math.max(dvrWindowLength - Math.floor(this.player.currentTime * 1000), 0);
+
+      this._gPlugin.setDvrWindowOffset(dvrWindowOffsetPosition);
+      this._gPlugin.setDvrWindowLength(dvrWindowLength);
+
+      return;
+    }
 
     this._lastKnownPosition = this._getCurrentPosition();
   }
 
+  _onRateChange(): void {
+    const playbackRate = this.player.playbackRate;
+
+    this._gPlugin.notifyChangePlaybackRate(playbackRate);
+  }
+
+  _onAudioTrackChanged(): void {
+    // TODO
+  }
+
+  _onTextTrackChanged(): void {
+    // TODO
+  }
+
+  _onEnterFullscreen(): void{
+    // TODO
+  }
+
+
+  _onExitFullScreen(): void {
+    // TODO
+  }
+
+  _onVolumeChange(): void {
+    // this.player.volume
+    // this.player.muted
+  }
+
   _onSourceSelected(): void {
+    this._isLive = this.player.isLive();
+
     this._gPlugin.createPlaybackSession();
     this._gPlugin.setAsset(this._getContentMetadataLabels(this.player.config), false, this._getContentMetadataObjects());
+
+    if(this._isLive) {
+      this._gPlugin.setDvrWindowLength(Math.floor(this.player.duration * 1000));
+    }
   }
 
   _sendCommand(notifyCommandName: string, position: Number): void {
@@ -276,6 +309,10 @@ export default class Comscore extends BasePlugin {
    */
   destroy(): void {
     this.eventManager.destroy();
+
+    if(!this._gPlugin) return;
+
+    this._gPlugin.release();
   }
 
   /**
@@ -369,9 +406,9 @@ export default class Comscore extends BasePlugin {
     contentMetadataLabels['ns_st_tp'] = "0";
     contentMetadataLabels['ns_st_cs'] = "0x0";
 
-    // tODO
-    // if (mediaProxyEntry.downloadUrl)
-    //   contentMetadataLabels['ns_st_cu'] = mediaProxyEntry.downloadUrl;
+    if (this.player.src) {
+      contentMetadataLabels['ns_st_cu'] = this.player.src;
+    }
 
     return contentMetadataLabels;
   }
@@ -387,15 +424,11 @@ export default class Comscore extends BasePlugin {
         map: this.player.config
       },
       {
-        prefix: 'content',
-        map: this.player.config
-      },
-      {
-        prefix: 'content.session',
+        prefix: 'clip.session',
         map: this.player.config.session
       },
       {
-        prefix: 'content.playback',
+        prefix: 'clip.playback',
         map: this.player.config.playback
       }
     ];
