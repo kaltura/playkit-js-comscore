@@ -324,13 +324,19 @@ export default class Comscore extends BasePlugin {
     // TODO
   }
 
-  _onEnterFullscreen(): void{
-    // TODO
+  _onEnterFullscreen(): void {
+    this.logger.debug('comScore notification: notifyChangeWindowState with "full"');
+    this._trackEventMonitor('notifyChangeWindowState with "full"');
+
+    this._gPlugin.notifyChangeWindowState('full');
   }
 
 
   _onExitFullScreen(): void {
-    // TODO
+    this.logger.debug('comScore notification: notifyChangeWindowState with "norm"');
+    this._trackEventMonitor('notifyChangeWindowState with "norm"');
+
+    this._gPlugin.notifyChangeWindowState('norm');
   }
 
   _onVolumeChange(): void {
