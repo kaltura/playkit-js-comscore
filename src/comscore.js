@@ -113,6 +113,7 @@ export default class Comscore extends BasePlugin {
       [this.player.Event.RATE_CHANGE]: this._onRateChange,
       [this.player.Event.PLAYER_STATE_CHANGED]: this._onPlayerStateChanged,
 
+      [this.player.Event.VIDEO_TRACK_CHANGED]: this._onVideoTrackChanged,
       [this.player.Event.AUDIO_TRACK_CHANGED]: this._onAudioTrackChanged,
       [this.player.Event.TEXT_TRACK_CHANGED]: this._onTextTrackChanged,
       [this.player.Event.ENTER_FULLSCREEN]: this._onEnterFullscreen,
@@ -327,6 +328,17 @@ export default class Comscore extends BasePlugin {
     const playbackRate = this.player.playbackRate;
 
     this._gPlugin.notifyChangePlaybackRate(playbackRate);
+  }
+
+  _onVideoTrackChanged(event): void {
+    if(!event.payload || !event.payload.selectedVideoTrack) return;
+
+    let bandwidth = event.payload.selectedVideoTrack._bandwidth;
+
+    this.logger.debug('comScore notification: notifyChangeAudioTrack with', bandwidth);
+    this._trackEventMonitor('notifyChangeAudioTrack with', bandwidth);
+
+    this._gPlugin.notifyChangeAudioTrack(bandwidth);
   }
 
   _onAudioTrackChanged(event): void {
