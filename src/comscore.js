@@ -421,14 +421,16 @@ export default class Comscore extends BasePlugin {
     const advertisementMetadataLabels = {};
     const contentMetadataLabels = this._getContentMetadataLabels(relatedContentMetadataObject);
 
-    if(contentMetadataLabels['ns_st_pl']) {
-      advertisementMetadataLabels['ns_st_pl'] = contentMetadataLabels['ns_st_pl'];
-    }
-    if(contentMetadataLabels['ns_st_pr']) {
-      advertisementMetadataLabels['ns_st_pr'] = contentMetadataLabels['ns_st_pr'];
-    }
-    if(contentMetadataLabels['ns_st_ep']){
-      advertisementMetadataLabels['ns_st_ep'] = contentMetadataLabels['ns_st_ep'];
+    const labelsToCopyFromContentMetadata = [
+      'ns_st_pl',
+      'ns_st_pr',
+      'ns_st_ep'
+    ];
+
+    for(const labelName of labelsToCopyFromContentMetadata) {
+      if(labelName in contentMetadataLabels) {
+        advertisementMetadataLabels[labelName] = contentMetadataLabels[labelName];
+      }
     }
 
     if (this.player.isLive()) {
