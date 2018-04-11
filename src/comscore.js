@@ -448,6 +448,8 @@ export default class Comscore extends BasePlugin {
 
     advertisementMetadataLabels['ns_st_an'] = this._adNumber + "";
     advertisementMetadataLabels['ns_st_bn'] = this._adBreakNumber + "";
+    contentMetadataLabels['ns_st_cs'] = "0x0";
+    contentMetadataLabels['ns_st_ty'] = this.player.config.type == MediaType.AUDIO ? 'audio' : 'video';
 
     const isLive = this.player.isLive(),
       contentTypeSuffix = this.player.config.type == MediaType.AUDIO ? 'aa' : 'va';
@@ -497,7 +499,7 @@ export default class Comscore extends BasePlugin {
     contentMetadataLabels['ns_st_ep'] = contentMetadataObject.name;
     contentMetadataLabels['ns_st_cl'] = Math.floor(contentMetadataObject.duration * 1000);
     contentMetadataLabels['ns_st_ci'] = contentMetadataObject.id;
-    contentMetadataLabels['ns_st_pn'] = this._contentPartNumber + ""; // TODO
+    contentMetadataLabels['ns_st_pn'] = this._contentPartNumber + "";
     contentMetadataLabels['ns_st_tp'] = "0";
     contentMetadataLabels['ns_st_cs'] = "0x0";
 
