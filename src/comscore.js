@@ -15,6 +15,7 @@ export default class Comscore extends BasePlugin {
   _isAd: boolean = false;
   _isLive: boolean = false;
   _adCachedAdvertisementMetadataObject: Object;
+  _isAdPreroll: boolean;
 
   _gPluginPromise: Promise<*>;
 
@@ -129,7 +130,7 @@ export default class Comscore extends BasePlugin {
     }
   }
 
-  _onError(event): void {
+  _onError(): void {
     //TODO: Check if error is critical and if so send ended
   }
 
@@ -137,26 +138,28 @@ export default class Comscore extends BasePlugin {
     this._adCachedAdvertisementMetadataObject = event.payload;
   }
 
-  _onAdBreakStart(event): void {
+  _onAdBreakStart(): void {
     this._isAd = true;
   }
-  _onAdStarted(event): void {
+  _onAdStarted(): void {
+    this._isAdPreroll = this._adCachedAdvertisementMetadataObject.adType == 'preroll';
+
     this._gPlugin.setAsset(this._getAdvertisementMetadataLabels(this._adCachedAdvertisementMetadataObject, this.player.config), false, this._getContentMetadataObjects());
 
     this._sendCommand('notifyPlay', 0);
   }
-  _onAdResumed(event): void {
+  _onAdResumed(): void {
     this._sendCommand('notifyPlay');
   }
-  _onAdPaused(event): void {
+  _onAdPaused(): void {
     this._sendCommand('notifyPause');
   }
-  _onAdClicked(event): void {
+  _onAdClicked(): void {
   }
-  _onAdSkipped(event): void {
+  _onAdSkipped(): void {
     this._sendCommand('notifySkipAd');
   }
-  _onAdCompleted(event): void {
+  _onAdCompleted(): void {
     if(this._adCachedAdvertisementMetadataObject.extraAdData && this._adCachedAdvertisementMetadataObject.extraAdData.duration) {
       let duration = Math.floor(this._adCachedAdvertisementMetadataObject.extraAdData.duration * 1000);
       this._sendCommand('notifyEnd', duration);
@@ -166,13 +169,22 @@ export default class Comscore extends BasePlugin {
 
     this._lastKnownAdPosition = NaN;
   }
-  _onAdError(event): void {
+  _onAdError(): void {
+    // TODO
   }
+
   _onAllAdsCompleted(): void {
-    this._isAd = false;
+    this._onAdBreakEnd();
   }
+
   _onAdBreakEnd(): void {
+    if(!this._isAd) return;
+
     this._isAd = false;
+
+    if(!this._isAdPreroll) {
+      this._assetPartNumber++;
+    }
 
     // We've finished with the ad break, moving back to content asset.
     this._gPlugin.setAsset(this._getContentMetadataLabels(this.player.config), false, this._getContentMetadataObjects());
@@ -308,6 +320,8 @@ export default class Comscore extends BasePlugin {
    * @returns {void}
    */
   destroy(): void {
+    this.logger.debug("comScore plugin is being destroyed");
+
     this.eventManager.destroy();
 
     if(!this._gPlugin) return;
@@ -323,7 +337,8 @@ export default class Comscore extends BasePlugin {
    * @returns {void}
    */
   reset(): void {
-  // Write logic
+    this.logger.debug("comScore plugin is being reset");
+    // TODO
   }
 
   _getAdvertisementMetadataLabels(advertisementMetadataObject, relatedContentMetadataObject): Object {
