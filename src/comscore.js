@@ -329,12 +329,26 @@ export default class Comscore extends BasePlugin {
     this._gPlugin.notifyChangePlaybackRate(playbackRate);
   }
 
-  _onAudioTrackChanged(): void {
-    // TODO
+  _onAudioTrackChanged(event): void {
+    if(!event.payload || !event.payload.selectedAudioTrack) return;
+
+    let trackName = event.payload.selectedAudioTrack._language;
+
+    this.logger.debug('comScore notification: notifyChangeAudioTrack with', trackName);
+    this._trackEventMonitor('notifyChangeAudioTrack with', trackName);
+
+    this._gPlugin.notifyChangeAudioTrack(trackName);
   }
 
-  _onTextTrackChanged(): void {
-    // TODO
+  _onTextTrackChanged(event): void {
+    if(!event.payload || !event.payload.selectedTextTrack) return;
+
+    let trackName = event.payload.selectedTextTrack._language;
+
+    this.logger.debug('comScore notification: notifyChangeSubtitleTrack with', trackName);
+    this._trackEventMonitor('notifyChangeSubtitleTrack with', trackName);
+
+    this._gPlugin.notifyChangeSubtitleTrack(trackName);
   }
 
   _onEnterFullscreen(): void {
