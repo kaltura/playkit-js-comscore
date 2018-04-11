@@ -340,8 +340,12 @@ export default class Comscore extends BasePlugin {
   }
 
   _onVolumeChange(): void {
-    // this.player.volume
-    // this.player.muted
+    let newPlayerVolume = this.player.muted ? 0 : Math.floor( this.player.volume * 100 );
+
+    this.logger.debug('comScore change notification: notifyChangeVolume with', newPlayerVolume);
+    this._trackEventMonitor('notifyChangeVolume with', newPlayerVolume);
+
+    this._gPlugin.notifyChangeVolume(newPlayerVolume);
   }
 
   _onSourceSelected(): void {
