@@ -435,15 +435,18 @@ export default class Comscore extends BasePlugin {
 
     // advertisementMetadataLabels.ns_st_an = adNumber + ""; TODO
 
+    const isLive = this.player.isLive(),
+      contentTypeSuffix = this.player.config.type == MediaType.AUDIO ? 'aa' : 'va';
+
     if (advertisementMetadataObject.adType == 'preroll') {
       advertisementMetadataLabels['ns_st_ad'] = "pre-roll";
-      advertisementMetadataLabels['ns_st_ct'] = "va11";
+      advertisementMetadataLabels['ns_st_ct'] = contentTypeSuffix + (isLive ? '21' : '11');
     } else if (advertisementMetadataObject.adType == 'postroll') {
       advertisementMetadataLabels['ns_st_ad'] = "post-roll";
-      advertisementMetadataLabels['ns_st_ct'] = "va13";
+      advertisementMetadataLabels['ns_st_ct'] = contentTypeSuffix + (isLive ? '21' : '13');
     } else if (advertisementMetadataObject.adType == 'midroll') {
       advertisementMetadataLabels['ns_st_ad'] = "mid-roll";
-      advertisementMetadataLabels['ns_st_ct'] = "va12";
+      advertisementMetadataLabels['ns_st_ct'] = contentTypeSuffix + (isLive ? '21' : '12');
     } else {
       // This should never happen.
       advertisementMetadataLabels['ns_st_ad'] = 1;
