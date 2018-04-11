@@ -450,6 +450,9 @@ export default class Comscore extends BasePlugin {
     const advertisementMetadataLabels = {};
     const contentMetadataLabels = this._getContentMetadataLabels(relatedContentMetadataObject);
 
+    const isLive = this.player.isLive(),
+      isAudio = this.player.config.type == MediaType.AUDIO;
+
     const labelsToCopyFromContentMetadata = [
       'ns_st_pl',
       'ns_st_pr',
@@ -460,10 +463,6 @@ export default class Comscore extends BasePlugin {
       if(labelName in contentMetadataLabels) {
         advertisementMetadataLabels[labelName] = contentMetadataLabels[labelName];
       }
-    }
-
-    if (this.player.isLive()) {
-      advertisementMetadataLabels['ns_st_li'] = "1";
     }
 
     if(advertisementMetadataObject.extraAdData && advertisementMetadataObject.extraAdData.adId) {
@@ -480,11 +479,14 @@ export default class Comscore extends BasePlugin {
     advertisementMetadataLabels['ns_st_an'] = this._adNumber + "";
     advertisementMetadataLabels['ns_st_bn'] = this._adBreakNumber + "";
     contentMetadataLabels['ns_st_cs'] = "0x0";
-    contentMetadataLabels['ns_st_ty'] = this.player.config.type == MediaType.AUDIO ? 'audio' : 'video';
+    contentMetadataLabels['ns_st_ty'] = isAudio ? 'audio' : 'video';
 
-    const isLive = this.player.isLive(),
-      contentTypeSuffix = this.player.config.type == MediaType.AUDIO ? 'aa' : 'va';
 
+    if (isLive) {
+      advertisementMetadataLabels['ns_st_li'] = "1";
+    }
+
+    const contentTypeSuffix = isAudio ? 'aa' : 'va';
     if (advertisementMetadataObject.adType == 'preroll') {
       advertisementMetadataLabels['ns_st_ad'] = "pre-roll";
       advertisementMetadataLabels['ns_st_ct'] = contentTypeSuffix + (isLive ? '21' : '11');
