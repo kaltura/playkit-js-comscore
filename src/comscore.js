@@ -16,6 +16,7 @@ export default class Comscore extends BasePlugin {
   _isLive: boolean = false;
   _adCachedAdvertisementMetadataObject: Object;
   _isAdPreroll: boolean;
+  _isPlaybackLifeCycleStarted: boolean;
 
   _gPluginPromise: Promise<*>;
 
@@ -61,6 +62,7 @@ export default class Comscore extends BasePlugin {
     this._adCachedAdvertisementMetadataObject = null;
     this._isAdPreroll = false;
     this._gPluginPromise = null;
+    this._isPlaybackLifeCycleStarted = false;
 
     this._gPluginPromise = Utils.Object.defer();
 
@@ -138,8 +140,21 @@ export default class Comscore extends BasePlugin {
     }
   }
 
-  _onError(): void {
-    //TODO: Check if error is critical and if so send ended
+  _onError(event): void {
+    let fatal = false;
+
+    if(event.payload && event.payload.severity == 2)
+      fatal = true;
+
+    if(fatal && this._isPlaybackLifeCycleStarted) {
+      this._sendCommand('notifyEnd', this._getCurrentPosition(), {
+        'ns_st_er': event.payload.code
+      });
+    } else {
+      this._sendCommand('notifyError', this._getCurrentPosition(), {
+        'ns_st_er': event.payload.code
+      });
+    }
   }
 
   _onAdLoaded(event): void {
@@ -159,17 +174,25 @@ export default class Comscore extends BasePlugin {
     this._gPlugin.setAsset(this._getAdvertisementMetadataLabels(this._adCachedAdvertisementMetadataObject, this.player.config), false, this._getContentMetadataObjects());
 
     this._sendCommand('notifyPlay', 0);
+
+    this._isPlaybackLifeCycleStarted = true;
   }
   _onAdResumed(): void {
     this._sendCommand('notifyPlay');
+
+    this._isPlaybackLifeCycleStarted = true;
   }
   _onAdPaused(): void {
     this._sendCommand('notifyPause');
+
+    this._isPlaybackLifeCycleStarted = true;
   }
   _onAdClicked(): void {
   }
   _onAdSkipped(): void {
     this._sendCommand('notifySkipAd');
+
+    this._isPlaybackLifeCycleStarted = true;
   }
   _onAdCompleted(): void {
     if(this._adCachedAdvertisementMetadataObject.extraAdData && this._adCachedAdvertisementMetadataObject.extraAdData.duration) {
@@ -180,6 +203,7 @@ export default class Comscore extends BasePlugin {
     }
 
     this._lastKnownAdPosition = NaN;
+    this._isPlaybackLifeCycleStarted = false;
   }
   _onAdError(): void {
     // TODO
@@ -211,10 +235,12 @@ export default class Comscore extends BasePlugin {
 
     if (oldState.type === this.player.State.BUFFERING) {
       this._sendCommand("notifyBufferStop");
+      this._isPlaybackLifeCycleStarted = true;
     }
 
     if (newState.type === this.player.State.BUFFERING) {
       this._sendCommand("notifyBufferStart");
+      this._isPlaybackLifeCycleStarted = true;
     }
   }
 
@@ -235,18 +261,26 @@ export default class Comscore extends BasePlugin {
     } else {
       this._sendCommand("notifySeekStart", this._lastKnownPosition);
     }
+
+    this._isPlaybackLifeCycleStarted = true;
   }
 
   _onPlaying(): void{
-      this._sendCommand("notifyPlay");
+    this._sendCommand("notifyPlay");
+
+    this._isPlaybackLifeCycleStarted = true;
   }
 
   _onFirstPlay(): void {
     this._sendCommand('notifyPlay');
+
+    this._isPlaybackLifeCycleStarted = true;
   }
 
   _onEnded(): void {
     this._sendCommand("notifyEnd");
+
+    this._isPlaybackLifeCycleStarted = false;
   }
 
   _onPause(): void {
@@ -257,6 +291,8 @@ export default class Comscore extends BasePlugin {
     // We won't notify this pause, only these happening at the middle of the playback.
     if(Math.ceil(this.player.currentTime) < this.player.duration) {
       this._sendCommand("notifyPause");
+
+      this._isPlaybackLifeCycleStarted = true;
     }
   }
 
@@ -313,12 +349,12 @@ export default class Comscore extends BasePlugin {
     }
   }
 
-  _sendCommand(notifyCommandName: string, position: Number): void {
-    this.logger.debug("comScore notification:" + notifyCommandName + "  with position:" + position);
-    this._trackEventMonitor(notifyCommandName + (position == null ? '' : ' with Position:' + position));
+  _sendCommand(notifyCommandName: string, position: Number, labels: object): void {
+    this.logger.debug("comScore notification:", notifyCommandName, 'with position:', position, 'with event labels:', labels);
+    this._trackEventMonitor(notifyCommandName, 'with position:', (position == null ? 'no-position' : position), 'with event labels:', labels);
 
     try {
-      this._gPlugin[notifyCommandName](position);
+      this._gPlugin[notifyCommandName](position, labels);
     } catch(e){
       this.logger.error("Error occur while trying to send:" + notifyCommandName +" to comscore",e);
     }
@@ -473,17 +509,13 @@ export default class Comscore extends BasePlugin {
    * @returns {object} The object to be consumed by the comScore Generic Plugin library.
    * */
   _parsePluginConfig(pluginConfig): Object {
-    pluginConfig = pluginConfig || {};
+    const comScorePluginSettings = Object.assign({}, pluginConfig);
 
-    let comScorePlugin = {
-      publisherId: this.player.config.session && this.player.config.session.partnerId,
-    };
-
-    if('debug' in pluginConfig) {
-      comScorePlugin['debug'] = pluginConfig['debug'];
+    if(!comScorePluginSettings['publisherId']) {
+      comScorePluginSettings['publisherId'] = this.player.config.session && this.player.config.session.partnerId;
     }
 
-    return comScorePlugin;
+    return comScorePluginSettings;
   }
 
   _log(): void {
