@@ -4,27 +4,36 @@
 <head>
   <meta charset="UTF-8">
   <title>Title</title>
-  <script src="https://cdnapisec.kaltura.com/p/2215841/embedPlaykitJs/uiconf_id/42237501/"></script>
+  <script src="//qa-apache-php7.dev.kaltura.com/p/1091/sp/109100/embedPlaykitJs/uiconf_id/15211585/partner_id/1091"></script>
   <!-- <script src="http://kgit.html5video.org/pulls/3751/modules/ComscoreStreamingTag/resources/bin/streamsense.plugin.min.js"></script> -->
   <!--<script src="http://localhost/player.js"></script>-->
   <script src="./playkit-js-comscore.js"></script>
 </head>
 
 <body>
+<input type="button" onclick="changeMedia()" value="Change Media"/>
+
   <div id="player-placeholder" style="width: 640px; height: 360px;"></div>
   <script>
     var mediaInfo = {
-      entryId: '1_fdv46dba',};
+      entryId: '0_ttfy4uu0',};
     var playerConfig = {
       logLevel: "DEBUG",
       targetId:"player-placeholder",
       provider:{
-        partnerId: 1740481,
-        uiConfId: 41565881
+        partnerId: 1091,
+        uiConfId: 15211585
       },
       player: {
         playback: {
           "preload": "none",
+
+
+
+
+
+
+
           "options": {
             "html5": {
               "hls": {
@@ -35,15 +44,20 @@
           } ,
         },
         plugins: {
-          comscore: {
+          comscore:{
             debug: true,
             publisherId: '1000001'
-          },
+          }
         }}
     };
 
+
+
     var kalturaPlayer = KalturaPlayer.setup(playerConfig);
     kalturaPlayer.loadMedia(mediaInfo);
+    function changeMedia(){
+      kalturaPlayer.loadMedia({entryId: '1_j09ivavh'});
+    }
   </script>
 </body>
 

@@ -11,18 +11,19 @@
 <body>
 <input type="button" onclick="changeMedia()" value="Change Media"/>
 
-  <div id="player-placeholder" style="width: 360px; height: 640px;"></div>
+  <div id="player-placeholder" style="width: 640px; height: 360px;"></div>
   <script>
     let config = {
       "provider":
         { "partnerId": "2215841", "uiConfId": "42237501" }
       , "targetId": "player-placeholder",
       "player":
-        { plugins: { comscore: {
-          labels:{
-              x:1,y:2
-              }
-            } } }
+        { plugins: {
+          comscore: {
+            debug: true,
+            publisherId: '1000001'
+            }
+        } }
     }
 
 

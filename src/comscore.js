@@ -582,10 +582,6 @@ export default class Comscore extends BasePlugin {
   _parsePluginConfig(pluginConfig): Object {
     const comScorePluginSettings = Object.assign({}, pluginConfig);
 
-    if(!comScorePluginSettings['publisherId']) {
-      comScorePluginSettings['publisherId'] = this.player.config.session && this.player.config.session.partnerId;
-    }
-
     return comScorePluginSettings;
   }
 
