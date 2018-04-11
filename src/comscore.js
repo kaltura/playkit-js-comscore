@@ -11,11 +11,13 @@ export default class Comscore extends BasePlugin {
   _gPlugin: Object;
   _lastKnownPosition: Number;
   _lastKnownAdPosition: Number;
-  _assetPartNumber: Number; // TODO
+  _contentPartNumber: Number;
   _isAd: boolean = false;
   _isLive: boolean = false;
   _adCachedAdvertisementMetadataObject: Object;
   _isAdPreroll: boolean;
+  _adNumber: Number;
+  _adBreakNumber: Number;
   _isPlaybackLifeCycleStarted: boolean;
 
   _gPluginPromise: Promise<*>;
@@ -56,13 +58,15 @@ export default class Comscore extends BasePlugin {
     this._gPlugin = null;
     this._lastKnownPosition = NaN;
     this._lastKnownAdPosition = NaN;
-    this._assetPartNumber = 1;
+    this._contentPartNumber = 1;
     this._isAd = false;
     this._isLive = false;
     this._adCachedAdvertisementMetadataObject = null;
     this._isAdPreroll = false;
     this._gPluginPromise = null;
     this._isPlaybackLifeCycleStarted = false;
+    this._adNumber = 0;
+    this._adBreakNumber = 0;
 
     this._gPluginPromise = Utils.Object.defer();
 
@@ -163,6 +167,13 @@ export default class Comscore extends BasePlugin {
 
   _onAdBreakStart(): void {
     this._isAd = true;
+    this._adNumber = 0;
+
+    if(this._adCachedAdvertisementMetadataObject.adType == 'preroll' || this._adCachedAdvertisementMetadataObject.adType == 'postroll') {
+      this._adBreakNumber = 1;
+    } else {
+      this._adBreakNumber++;
+    }
   }
   _onAdStarted(): void {
     // This should never happen.
@@ -170,6 +181,8 @@ export default class Comscore extends BasePlugin {
 
     // Based on what we've played, we will increase the part number at the end of the ad break.
     this._isAdPreroll = this._adCachedAdvertisementMetadataObject.adType == 'preroll';
+
+    this._adNumber++;
 
     this._gPlugin.setAsset(this._getAdvertisementMetadataLabels(this._adCachedAdvertisementMetadataObject, this.player.config), false, this._getContentMetadataObjects());
 
@@ -219,7 +232,7 @@ export default class Comscore extends BasePlugin {
     this._isAd = false;
 
     if(!this._isAdPreroll) {
-      this._assetPartNumber++;
+      this._contentPartNumber++;
     }
 
     // We've finished with the ad break, moving back to content asset.
@@ -433,7 +446,8 @@ export default class Comscore extends BasePlugin {
       advertisementMetadataLabels['ns_st_cl'] = Math.floor(advertisementMetadataObject.extraAdData.duration * 1000);
     }
 
-    // advertisementMetadataLabels.ns_st_an = adNumber + ""; TODO
+    advertisementMetadataLabels['ns_st_an'] = this._adNumber + "";
+    advertisementMetadataLabels['ns_st_bn'] = this._adBreakNumber + "";
 
     const isLive = this.player.isLive(),
       contentTypeSuffix = this.player.config.type == MediaType.AUDIO ? 'aa' : 'va';
@@ -483,7 +497,7 @@ export default class Comscore extends BasePlugin {
     contentMetadataLabels['ns_st_ep'] = contentMetadataObject.name;
     contentMetadataLabels['ns_st_cl'] = Math.floor(contentMetadataObject.duration * 1000);
     contentMetadataLabels['ns_st_ci'] = contentMetadataObject.id;
-    contentMetadataLabels['ns_st_pn'] = this._assetPartNumber + ""; // TODO
+    contentMetadataLabels['ns_st_pn'] = this._contentPartNumber + ""; // TODO
     contentMetadataLabels['ns_st_tp'] = "0";
     contentMetadataLabels['ns_st_cs'] = "0x0";
 
