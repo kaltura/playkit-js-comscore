@@ -513,24 +513,38 @@ export default class Comscore extends BasePlugin {
   }
 
   _getContentMetadataObjects(): Object {
-    return [
-      {
+    let contentMetadataObject = [];
+
+    if(this._isAd) {
+      contentMetadataObject.push({
+        prefix: '',
+        map: this._adCachedAdvertisementMetadataObject.extraAdData
+      });
+    } else {
+      contentMetadataObject.push({
         prefix: '',
         map: this.player.config.metadata
-      },
-      {
-        prefix: 'clip',
-        map: this.player.config
-      },
-      {
-        prefix: 'clip.session',
-        map: this.player.config.session
-      },
-      {
-        prefix: 'clip.playback',
-        map: this.player.config.playback
-      }
-    ];
+      });
+    }
+
+    contentMetadataObject.push({
+      prefix: 'content',
+      map: this.player.config.metadata
+    });
+    contentMetadataObject.push({
+      prefix: 'content.clip',
+      map: this.player.config
+    });
+    contentMetadataObject.push({
+      prefix: 'content.clip.session',
+      map: this.player.config.session
+    });
+    contentMetadataObject.push({
+      prefix: 'content.clip.playback',
+      map: this.player.config.playback
+    });
+
+    return contentMetadataObject;
   }
 
   /**
