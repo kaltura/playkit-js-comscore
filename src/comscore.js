@@ -44,8 +44,6 @@ export default class Comscore extends BasePlugin {
     this._trackEventMonitorCallbackName = config.trackEventMonitor;
 
     this._init();
-
-    this._assetPartNumber = 1;
   }
 
   /**
@@ -54,6 +52,16 @@ export default class Comscore extends BasePlugin {
    * @returns {void}
    */
   _init(): void {
+    this._gPlugin = null;
+    this._lastKnownPosition = NaN;
+    this._lastKnownAdPosition = NaN;
+    this._assetPartNumber = 1;
+    this._isAd = false;
+    this._isLive = false;
+    this._adCachedAdvertisementMetadataObject = null;
+    this._isAdPreroll = false;
+    this._gPluginPromise = null;
+
     this._gPluginPromise = Utils.Object.defer();
 
     this.player.ready().then(() => {
@@ -142,6 +150,10 @@ export default class Comscore extends BasePlugin {
     this._isAd = true;
   }
   _onAdStarted(): void {
+    // This should never happen.
+    if(!this._adCachedAdvertisementMetadataObject || !this._isAd) return;
+
+    // Based on what we've played, we will increase the part number at the end of the ad break.
     this._isAdPreroll = this._adCachedAdvertisementMetadataObject.adType == 'preroll';
 
     this._gPlugin.setAsset(this._getAdvertisementMetadataLabels(this._adCachedAdvertisementMetadataObject, this.player.config), false, this._getContentMetadataObjects());
@@ -313,7 +325,6 @@ export default class Comscore extends BasePlugin {
   }
 
   /**
-   * TODO: Define the destroy logic of your plugin.
    * Destroys the plugin.
    * @override
    * @public
@@ -324,13 +335,13 @@ export default class Comscore extends BasePlugin {
 
     this.eventManager.destroy();
 
-    if(!this._gPlugin) return;
-
-    this._gPlugin.release();
+    if(this._gPlugin){
+      this._gPlugin.release();
+      this._gPlugin = null;
+    }
   }
 
   /**
-   * TODO: Define the reset logic of your plugin.
    * Resets the plugin.
    * @override
    * @public
@@ -338,7 +349,13 @@ export default class Comscore extends BasePlugin {
    */
   reset(): void {
     this.logger.debug("comScore plugin is being reset");
-    // TODO
+
+    if(this._gPlugin){
+      this._gPlugin.release();
+      this._gPlugin = null;
+    }
+
+    this._init();
   }
 
   _getAdvertisementMetadataLabels(advertisementMetadataObject, relatedContentMetadataObject): Object {
