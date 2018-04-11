@@ -151,13 +151,16 @@ export default class Comscore extends BasePlugin {
     if(event.payload && event.payload.severity == 2)
       fatal = true;
 
+    // Somtimes we've observed the payload object does not exist.
+    let code = event.payload && event.payload.code || null;
+
     if(fatal && this._isPlaybackLifeCycleStarted) {
       this._sendCommand('notifyEnd', this._getCurrentPosition(), {
-        'ns_st_er': event.payload.code
+        'ns_st_er': code
       });
     } else {
       this._sendCommand('notifyError', this._getCurrentPosition(), {
-        'ns_st_er': event.payload.code
+        'ns_st_er': code
       });
     }
   }
