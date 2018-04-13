@@ -1,6 +1,6 @@
 // @flow
 import {BasePlugin, MediaType, Utils} from 'playkit-js'
-import ns_ from "../bin/streamsense.plugin.min.js"
+import ns_ from "../bin/comScore-JS-GenericPlugin"
 
 /**
  * Your class description.
