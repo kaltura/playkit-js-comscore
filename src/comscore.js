@@ -306,7 +306,8 @@ export default class Comscore extends BasePlugin {
 
     // At the end of the playback we've notice there's an unexpected pause event.
     // We won't notify this pause, only these happening at the middle of the playback.
-    if(Math.ceil(this.player.currentTime) < this.player.duration) {
+    // This should not apply on live streams.
+    if(this._isLive || Math.ceil(this.player.currentTime) < this.player.duration) {
       this._sendCommand("notifyPause");
 
       this._isPlaybackLifeCycleStarted = true;
