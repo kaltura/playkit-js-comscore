@@ -528,11 +528,11 @@ export default class Comscore extends BasePlugin {
       contentMetadataLabels['ns_st_ty'] = 'video';
     }
 
-    contentMetadataLabels['ns_st_pl'] = contentMetadataObject.name;
-    contentMetadataLabels['ns_st_pr'] = contentMetadataObject.name;
-    contentMetadataLabels['ns_st_ep'] = contentMetadataObject.name;
-    contentMetadataLabels['ns_st_cl'] = Math.floor(contentMetadataObject.duration * 1000);
-    contentMetadataLabels['ns_st_ci'] = contentMetadataObject.id;
+    contentMetadataLabels['ns_st_pl'] = contentMetadataObject.sources.metadata.name;
+    contentMetadataLabels['ns_st_pr'] = contentMetadataObject.sources.metadata.name;
+    contentMetadataLabels['ns_st_ep'] = contentMetadataObject.sources.metadata.name;
+    contentMetadataLabels['ns_st_cl'] = Math.floor(contentMetadataObject.sources.duration * 1000);
+    contentMetadataLabels['ns_st_ci'] = contentMetadataObject.sources.id;
     contentMetadataLabels['ns_st_pn'] = this._contentPartNumber + "";
     contentMetadataLabels['ns_st_tp'] = "0";
     contentMetadataLabels['ns_st_cs'] = "0x0";
@@ -555,13 +555,13 @@ export default class Comscore extends BasePlugin {
     } else {
       contentMetadataObject.push({
         prefix: '',
-        map: this.player.config.metadata
+        map: this.player.config.sources.metadata
       });
     }
 
     contentMetadataObject.push({
       prefix: 'content',
-      map: this.player.config.metadata
+      map: this.player.config.sources.metadata
     });
     contentMetadataObject.push({
       prefix: 'content.clip',
