@@ -452,7 +452,7 @@ export default class Comscore extends BasePlugin {
     const contentMetadataLabels = this._getContentMetadataLabels(relatedContentMetadataObject);
 
     const isLive = this.player.isLive(),
-      isAudio = this.player.config.type == MediaType.AUDIO;
+      isAudio = this.player.config.sources.type == MediaType.AUDIO;
 
     const labelsToCopyFromContentMetadata = [
       'ns_st_pl',
