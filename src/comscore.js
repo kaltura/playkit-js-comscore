@@ -565,7 +565,7 @@ export default class Comscore extends BasePlugin {
     });
     contentMetadataObject.push({
       prefix: 'content.clip',
-      map: this.player.config
+      map: this.player.config.sources
     });
     contentMetadataObject.push({
       prefix: 'content.clip.session',
