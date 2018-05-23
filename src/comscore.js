@@ -341,10 +341,10 @@ export default class Comscore extends BasePlugin {
 
     let bandwidth = event.payload.selectedVideoTrack._bandwidth;
 
-    this.logger.debug('comScore notification: notifyChangeAudioTrack with', bandwidth);
-    this._trackEventMonitor('notifyChangeAudioTrack with', bandwidth);
+    this.logger.debug('comScore notification: notifyChangeBitrate with', bandwidth);
+    this._trackEventMonitor('notifyChangeBitrate with', bandwidth);
 
-    this._gPlugin.notifyChangeAudioTrack(bandwidth);
+    this._gPlugin.notifyChangeBitrate(bandwidth);
   }
 
   _onAudioTrackChanged(event): void {
