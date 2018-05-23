@@ -469,6 +469,7 @@ export default class Comscore extends BasePlugin {
       isAudio = this.player.config.sources.type == MediaType.AUDIO;
 
     const labelsToCopyFromContentMetadata = [
+      'ns_st_ci',
       'ns_st_pl',
       'ns_st_pr',
       'ns_st_ep'
@@ -478,10 +479,6 @@ export default class Comscore extends BasePlugin {
       if(labelName in contentMetadataLabels) {
         advertisementMetadataLabels[labelName] = contentMetadataLabels[labelName];
       }
-    }
-
-    if(advertisementMetadataObject.extraAdData && advertisementMetadataObject.extraAdData.adId) {
-      advertisementMetadataLabels['ns_st_ci'] = advertisementMetadataObject.extraAdData.adId + '';
     }
 
     advertisementMetadataLabels['ns_st_pn'] = "1"; // Current part number of the ad. Always assume part 1.
@@ -514,6 +511,10 @@ export default class Comscore extends BasePlugin {
     } else {
       // This should never happen.
       advertisementMetadataLabels['ns_st_ad'] = 1;
+    }
+
+    if(advertisementMetadataObject.extraAdData && advertisementMetadataObject.extraAdData.adId) {
+      advertisementMetadataLabels['ns_st_ami'] = advertisementMetadataObject.extraAdData.adId + '';
     }
 
     if(advertisementMetadataObject.extraAdData && advertisementMetadataObject.extraAdData.adSystem) {
