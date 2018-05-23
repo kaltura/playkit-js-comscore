@@ -1,6 +1,6 @@
 {
-  "name": "playkit-js-js-comscore",
-  "version": "1.0.2",
+  "name": "playkit-js-comscore",
+  "version": "1.0.3",
   "main": "dist/playkit-js-comscore.js",
   "scripts": {
     "clean": "rm -rf ./dist",
@@ -72,12 +72,12 @@
   "license": "AGPL-3.0",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/kaltura/playkit-js-js-comscore.git"
+    "url": "git+https://github.com/kaltura/playkit-js-comscore.git"
   },
   "bugs": {
-    "url": "https://github.com/kaltura/playkit-js-js-comscore/issues"
+    "url": "https://github.com/kaltura/playkit-js-comscore/issues"
   },
-  "homepage": "https://github.com/kaltura/playkit-js-js-comscore#readme",
+  "homepage": "https://github.com/kaltura/playkit-js-comscore#readme",
   "dependencies": {
     "imports-loader": "^0.8.0"
   }

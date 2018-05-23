@@ -1,1 +1,1 @@
-playkit-js-js-comscore
+playkit-js-comscore
