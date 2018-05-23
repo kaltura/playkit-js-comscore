@@ -520,7 +520,7 @@ export default class Comscore extends BasePlugin {
       contentMetadataLabels['ns_st_li'] = "1";
     }
 
-    if(this.player.config.type == MediaType.AUDIO) {
+    if(this.player.config.sources.type == MediaType.AUDIO) {
       contentMetadataLabels['ns_st_ct'] = 'ac00';
       contentMetadataLabels['ns_st_ty'] = 'audio';
     } else {
