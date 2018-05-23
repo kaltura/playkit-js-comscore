@@ -81,6 +81,8 @@ export default class Comscore extends BasePlugin {
         position: this._getCurrentPosition.bind(this)
       });
 
+      this._setInitialPlayerData();
+
       this._gPluginPromise.resolve();
     });
 
@@ -368,27 +370,16 @@ export default class Comscore extends BasePlugin {
   }
 
   _onEnterFullscreen(): void {
-    this.logger.debug('comScore notification: notifyChangeWindowState with "full"');
-    this._trackEventMonitor('notifyChangeWindowState with "full"');
-
-    this._gPlugin.notifyChangeWindowState('full');
+    this._updateWindowState();
   }
 
 
   _onExitFullScreen(): void {
-    this.logger.debug('comScore notification: notifyChangeWindowState with "norm"');
-    this._trackEventMonitor('notifyChangeWindowState with "norm"');
-
-    this._gPlugin.notifyChangeWindowState('norm');
+    this._updateWindowState();
   }
 
   _onVolumeChange(): void {
-    let newPlayerVolume = this.player.muted ? 0 : Math.floor( this.player.volume * 100 );
-
-    this.logger.debug('comScore change notification: notifyChangeVolume with', newPlayerVolume);
-    this._trackEventMonitor('notifyChangeVolume with', newPlayerVolume);
-
-    this._gPlugin.notifyChangeVolume(newPlayerVolume);
+    this._updatePlayerVolume();
   }
 
   _onSourceSelected(): void {
@@ -400,6 +391,29 @@ export default class Comscore extends BasePlugin {
     if(this._isLive) {
       this._gPlugin.setDvrWindowLength(Math.floor(this.player.duration * 1000));
     }
+  }
+
+  _updateWindowState(): void {
+    let windowState = this.player.isFullscreen() ? 'full' : 'norm';
+
+    this.logger.debug('comScore notification: notifyChangeWindowState with:', windowState);
+    this._trackEventMonitor('notifyChangeWindowState with:', windowState);
+
+    this._gPlugin.notifyChangeWindowState( windowState );
+  }
+
+  _updatePlayerVolume(): void {
+    let newPlayerVolume = this.player.muted ? 0 : Math.floor( this.player.volume * 100 );
+
+    this.logger.debug('comScore change notification: notifyChangeVolume with', newPlayerVolume);
+    this._trackEventMonitor('notifyChangeVolume with', newPlayerVolume);
+
+    this._gPlugin.notifyChangeVolume(newPlayerVolume);
+  }
+
+  _setInitialPlayerData(): void {
+    this._updatePlayerVolume();
+    this._updateWindowState();
   }
 
   _sendCommand(notifyCommandName: string, position: Number, labels: object): void {
