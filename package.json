@@ -1,6 +1,6 @@
 {
   "name": "playkit-js-comscore",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "main": "dist/playkit-js-comscore.js",
   "scripts": {
     "clean": "rm -rf ./dist",
