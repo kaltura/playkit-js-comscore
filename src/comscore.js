@@ -7,7 +7,6 @@ import ns_ from "../bin/streamsense.plugin.min.js"
  * @classdesc
  */
 export default class Comscore extends BasePlugin {
-  _trackEventMonitorCallbackName: string;
   _gPlugin: Object;
   _lastKnownPosition: Number;
   _lastKnownAdPosition: Number;
@@ -44,8 +43,6 @@ export default class Comscore extends BasePlugin {
   constructor(name: string, player: Player, config: Object) {
     super(name, player, config);
 
-    this._trackEventMonitorCallbackName = config.trackEventMonitor;
-
     this._init();
   }
 
@@ -75,7 +72,12 @@ export default class Comscore extends BasePlugin {
 
       let pluginConfig = this._parsePluginConfig(this.config);
 
-      this._trackEventMonitor('Configured publisherId', pluginConfig['publisherId']);
+      this._logNotify('StreamingAnalytics Generic Plugin', {
+        config: pluginConfig,
+        platform_name: Comscore.PLUGIN_PLATFORM_NAME,
+        plugin_version: Comscore.PLUGIN_VERSION,
+        player_version: window.KalturaPlayer.VERSION
+      });
 
       this._gPlugin = new ns_.StreamingAnalytics.Plugin(pluginConfig, Comscore.PLUGIN_PLATFORM_NAME, Comscore.PLUGIN_VERSION, window.KalturaPlayer.VERSION, {
         position: this._getCurrentPosition.bind(this)
@@ -319,6 +321,10 @@ export default class Comscore extends BasePlugin {
       let dvrWindowLength = Math.floor(this.player.duration * 1000);
       let dvrWindowOffsetPosition = Math.max(dvrWindowLength - Math.floor(this.player.currentTime * 1000), 0);
 
+      this.logger.debug('comScore notification: dvrWindowOffset', dvrWindowOffsetPosition, 'dvrWindowLength', dvrWindowLength);
+      this._logNotify('setDvrWindowOffset', dvrWindowOffsetPosition);
+      this._logNotify('setDvrWindowLength', dvrWindowLength);
+
       this._gPlugin.setDvrWindowOffset(dvrWindowOffsetPosition);
       this._gPlugin.setDvrWindowLength(dvrWindowLength);
 
@@ -331,6 +337,9 @@ export default class Comscore extends BasePlugin {
   _onRateChange(): void {
     const playbackRate = this.player.playbackRate;
 
+    this.logger.debug('comScore notification: notifyChangePlaybackRate with', playbackRate);
+    this._logNotify('notifyChangePlaybackRate', playbackRate);
+
     this._gPlugin.notifyChangePlaybackRate(playbackRate);
   }
 
@@ -340,7 +349,7 @@ export default class Comscore extends BasePlugin {
     let bandwidth = event.payload.selectedVideoTrack._bandwidth;
 
     this.logger.debug('comScore notification: notifyChangeAudioTrack with', bandwidth);
-    this._trackEventMonitor('notifyChangeAudioTrack with', bandwidth);
+    this._logNotify('notifyChangeAudioTrack', bandwidth);
 
     this._gPlugin.notifyChangeAudioTrack(bandwidth);
   }
@@ -351,7 +360,7 @@ export default class Comscore extends BasePlugin {
     let trackName = event.payload.selectedAudioTrack._language;
 
     this.logger.debug('comScore notification: notifyChangeAudioTrack with', trackName);
-    this._trackEventMonitor('notifyChangeAudioTrack with', trackName);
+    this._logNotify('notifyChangeAudioTrack', trackName);
 
     this._gPlugin.notifyChangeAudioTrack(trackName);
   }
@@ -362,14 +371,14 @@ export default class Comscore extends BasePlugin {
     let trackName = event.payload.selectedTextTrack._language;
 
     this.logger.debug('comScore notification: notifyChangeSubtitleTrack with', trackName);
-    this._trackEventMonitor('notifyChangeSubtitleTrack with', trackName);
+    this._logNotify('notifyChangeSubtitleTrack', trackName);
 
     this._gPlugin.notifyChangeSubtitleTrack(trackName);
   }
 
   _onEnterFullscreen(): void {
     this.logger.debug('comScore notification: notifyChangeWindowState with "full"');
-    this._trackEventMonitor('notifyChangeWindowState with "full"');
+    this._logNotify('notifyChangeWindowState', 'full');
 
     this._gPlugin.notifyChangeWindowState('full');
   }
@@ -377,7 +386,7 @@ export default class Comscore extends BasePlugin {
 
   _onExitFullScreen(): void {
     this.logger.debug('comScore notification: notifyChangeWindowState with "norm"');
-    this._trackEventMonitor('notifyChangeWindowState with "norm"');
+    this._logNotify('notifyChangeWindowState', 'norm');
 
     this._gPlugin.notifyChangeWindowState('norm');
   }
@@ -386,7 +395,7 @@ export default class Comscore extends BasePlugin {
     let newPlayerVolume = this.player.muted ? 0 : Math.floor( this.player.volume * 100 );
 
     this.logger.debug('comScore change notification: notifyChangeVolume with', newPlayerVolume);
-    this._trackEventMonitor('notifyChangeVolume with', newPlayerVolume);
+    this._logNotify('notifyChangeVolume', newPlayerVolume);
 
     this._gPlugin.notifyChangeVolume(newPlayerVolume);
   }
@@ -404,7 +413,10 @@ export default class Comscore extends BasePlugin {
 
   _sendCommand(notifyCommandName: string, position: Number, labels: object): void {
     this.logger.debug("comScore notification:", notifyCommandName, 'with position:', position, 'with event labels:', labels);
-    this._trackEventMonitor(notifyCommandName, 'with position:', (position == null ? 'no-position' : position), 'with event labels:', labels);
+    this._logNotify(notifyCommandName, {
+      position: position,
+      labels: labels
+    });
 
     try {
       this._gPlugin[notifyCommandName](position, labels);
@@ -606,14 +618,5 @@ export default class Comscore extends BasePlugin {
     };
 
     this.player.dispatchEvent(new FakeEvent(this.PLUGIN_COMSCORE_PLUGIN_EVENT, payload));
-  }
-
-  _trackEventMonitor(): void {
-    if(typeof window[this._trackEventMonitorCallbackName] != 'function') return;
-
-    const args = Array.from(arguments);
-    args.unshift('comScore');
-
-    window[this._trackEventMonitorCallbackName](args);
   }
 }
