@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Title</title>
-  <script src="https://cdnapisec.kaltura.com/p/2215841/embedPlaykitJs/uiconf_id/42237501/"></script>
+  <script src="//qa-apache-php7.dev.kaltura.com/p/1091/sp/109100/embedPlaykitJs/uiconf_id/15214502/partner_id/1091"></script>
   <!-- <script src="http://kgit.html5video.org/pulls/3751/modules/ComscoreStreamingTag/resources/bin/streamsense.plugin.min.js"></script> -->
   <!--<script src="http://localhost/player.js"></script>-->
   <script src="./playkit-js-comscore.js"></script>
@@ -15,21 +15,46 @@
 
   <div id="player-placeholder" style="width: 640px; height: 360px;"></div>
   <script>
-    let config = {
+    var mediaInfo = {
+      entryId: '0_wifqaipd',};
+    var playerConfig = {
       logLevel: "DEBUG",
-      "provider":
-        { "partnerId": "2215841", "uiConfId": "42237501" }
-      , "targetId": "player-placeholder",
-      "player":
-        { plugins: { comscore: {
-              debug: true,
-              publisherId: '1000001'
-            } } }
-    }
+      targetId:"player-placeholder",
+      provider:{
+        partnerId: 1091,
+        uiConfId: 15214502
+      },
+      player: {playback: {
+          "preload": "none",
+          "autoplay": false,
+          "muted": false,
+          "allowMutedAutoPlay": false,
+          "useNativeTextTrack": false,
+          "playsinline": false,
 
 
-    var kalturaPlayer = KalturaPlayer.setup(config);
-    kalturaPlayer.loadMedia({ entryId: "1_ebs5e9cy" });
+          "options": {
+            "html5": {
+              "hls": {
+              },
+              "dash": {
+              }
+            }
+          } ,
+        },
+        plugins: {
+          comscore: {
+            publisherId: "1000001",
+            debug: true
+          }
+        }}
+    };
+
+
+
+    var kalturaPlayer = KalturaPlayer.setup(playerConfig);
+    kalturaPlayer.loadMedia(mediaInfo);
+
     function changeMedia(){
       kalturaPlayer.loadMedia({entryId: '1_j09ivavh'});
     }
