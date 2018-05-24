@@ -1,5 +1,5 @@
 // @flow
-import {BasePlugin, MediaType, Utils} from 'playkit-js'
+import {BasePlugin, MediaType, Utils, FakeEvent} from 'playkit-js'
 import ns_ from "../bin/streamsense.plugin.min.js"
 
 /**
@@ -597,6 +597,15 @@ export default class Comscore extends BasePlugin {
 
     this.logger.debug.apply(this.logger, args);
     // this.logger.debug("The comScore onReady event was triggered.");
+  }
+
+  _logNotify(methodName, args): void {
+    let payload = {
+      api: methodName,
+      args: args
+    };
+
+    this.player.dispatchEvent(new FakeEvent(this.PLUGIN_COMSCORE_PLUGIN_EVENT, payload));
   }
 
   _trackEventMonitor(): void {
