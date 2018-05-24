@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="1.0.4"></a>
+## [1.0.4](https://github.com/kaltura/playkit-js-comscore/compare/v1.0.3...v1.0.4) (2018-05-24)
+
+
+### Bug Fixes
+
+* Incorrect value in labels ns_st_ws, ns_st_vo, ns_st_br, ns_st_ci, ns_st_ami ([#7](https://github.com/kaltura/playkit-js-comscore/issues/7)) ([4577b03](https://github.com/kaltura/playkit-js-comscore/commit/4577b03))
+* Undesired extra measurements, fixes ns_st_cs, ns_st_ty label values and fixes examplse ([#9](https://github.com/kaltura/playkit-js-comscore/issues/9)) ([1c29aa2](https://github.com/kaltura/playkit-js-comscore/commit/1c29aa2))
+
+
+
 <a name="1.0.3"></a>
 ## [1.0.3](https://github.com/kaltura/playkit-js-comscore/compare/v1.0.2...v1.0.3) (2018-05-23)
 
