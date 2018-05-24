@@ -104,7 +104,6 @@ export default class Comscore extends BasePlugin {
     let listeners = {
       [this.player.Event.SOURCE_SELECTED]: this._onSourceSelected,
       [this.player.Event.ERROR]: this._onError,
-      [this.player.Event.FIRST_PLAY]: this._onFirstPlay,
       [this.player.Event.PLAYING]: this._onPlaying,
       [this.player.Event.SEEKING]: this._onSeeking,
       [this.player.Event.PAUSE]: this._onPause,
@@ -284,12 +283,6 @@ export default class Comscore extends BasePlugin {
 
   _onPlaying(): void{
     this._sendCommand("notifyPlay");
-
-    this._isPlaybackLifeCycleStarted = true;
-  }
-
-  _onFirstPlay(): void {
-    this._sendCommand('notifyPlay');
 
     this._isPlaybackLifeCycleStarted = true;
   }
@@ -479,8 +472,8 @@ export default class Comscore extends BasePlugin {
 
     advertisementMetadataLabels['ns_st_an'] = this._adNumber + "";
     advertisementMetadataLabels['ns_st_bn'] = this._adBreakNumber + "";
-    contentMetadataLabels['ns_st_cs'] = "0x0";
-    contentMetadataLabels['ns_st_ty'] = isAudio ? 'audio' : 'video';
+    advertisementMetadataLabels['ns_st_cs'] = "0x0";
+    advertisementMetadataLabels['ns_st_ty'] = isAudio ? 'audio' : 'video';
 
 
     if (isLive) {
