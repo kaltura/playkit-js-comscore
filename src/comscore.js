@@ -18,12 +18,16 @@ export default class Comscore extends BasePlugin {
   _adNumber: Number;
   _adBreakNumber: Number;
   _isPlaybackLifeCycleStarted: boolean;
+  _continuousPlaybackSession: boolean;
 
   _gPluginPromise: Promise<*>;
 
   static PLUGIN_VERSION = "2.0.0";
   static PLUGIN_PLATFORM_NAME = "kalturav3";
   static PLUGIN_COMSCORE_PLUGIN_EVENT = "CS_COMSCORE_STA";
+
+  // Settings
+  static SETTING_CONTINUOUS_PLAYBACK_SESSION = "continuousPlaybackSession";
 
   /**
    * @static
@@ -83,7 +87,7 @@ export default class Comscore extends BasePlugin {
       this._gPlugin = new ns_.StreamingAnalytics.Plugin(pluginConfig, Comscore.PLUGIN_PLATFORM_NAME, Comscore.PLUGIN_VERSION, window.KalturaPlayer.VERSION, {
         position: this._getCurrentPosition.bind(this)
       });
-
+      
       this._setInitialPlayerData();
 
       this._gPluginPromise.resolve();
@@ -381,9 +385,12 @@ export default class Comscore extends BasePlugin {
   }
 
   _onSourceSelected(): void {
+    if(!this._continuousPlaybackSession) {
+      this._gPlugin.createPlaybackSession();
+    }
+
     this._isLive = this.player.isLive();
 
-    this._gPlugin.createPlaybackSession();
     this._gPlugin.setAsset(this._getContentMetadataLabels(this.player.config), false, this._getContentMetadataObjects());
 
     if(this._isLive) {
@@ -443,20 +450,19 @@ export default class Comscore extends BasePlugin {
   }
 
   /**
-   * Resets the plugin.
+   * Resets the plugin. It will be executed:
+   * 1. loadMedia is called. E.g. media change
+   * 2. when the reset API method is called - it stops the current playback and should basically unload the current session.
+   *
+   * Because we are not able to distinguish between the 1st from the 2nd
+   * this plugin method will only handle the 1st scenario, ignoring the 2nd.
+   *
    * @override
    * @public
    * @returns {void}
    */
   reset(): void {
-    this.logger.debug("comScore plugin is being reset");
-
-    if(this._gPlugin){
-      this._gPlugin.release();
-      this._gPlugin = null;
-    }
-
-    this._init();
+    this.logger.debug("comScore plugin is ignoring the reset.");
   }
 
   _getAdvertisementMetadataLabels(advertisementMetadataObject, relatedContentMetadataObject): Object {
@@ -600,6 +606,8 @@ export default class Comscore extends BasePlugin {
    * */
   _parsePluginConfig(pluginConfig): Object {
     const comScorePluginSettings = Object.assign({}, pluginConfig);
+
+    this._continuousPlaybackSession = comScorePluginSettings[Comscore.SETTING_CONTINUOUS_PLAYBACK_SESSION];
 
     return comScorePluginSettings;
   }
