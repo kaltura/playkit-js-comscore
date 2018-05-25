@@ -63,6 +63,7 @@ export default class Comscore extends BasePlugin {
 
     this._gPluginPromise = Utils.Object.defer();
 
+    // Plugin's this.config is not available until the player triggers the ready event.
     this.player.ready().then(() => {
       this.logger.debug("The comScore onReady event was triggered.");
 
@@ -84,6 +85,8 @@ export default class Comscore extends BasePlugin {
       this._gPluginPromise.resolve();
     });
 
+    // We start listening for all the events,
+    // but we will consume them once the plugin is initialised by queueing them using a promise.
     this._addBindings();
   }
 
