@@ -1,5 +1,5 @@
 // @flow
-import {BasePlugin, MediaType, Utils, FakeEvent} from 'playkit-js'
+import {BasePlugin, MediaType, Utils, FakeEvent, Error} from 'playkit-js'
 import ns_ from "../bin/streamsense.plugin.min.js"
 
 /**
@@ -151,7 +151,7 @@ export default class Comscore extends BasePlugin {
   _onError(event): void {
     let fatal = false;
 
-    if(event.payload && event.payload.severity == 2)
+    if(event.payload && event.payload.severity === Error.Severity.CRITICAL)
       fatal = true;
 
     // Somtimes we've observed the payload object does not exist.
