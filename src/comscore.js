@@ -619,6 +619,6 @@ export default class Comscore extends BasePlugin {
       args: methodArgs
     };
 
-    this.player.dispatchEvent(new FakeEvent(this.PLUGIN_COMSCORE_PLUGIN_EVENT, payload));
+    this.player.dispatchEvent(new FakeEvent(Comscore.PLUGIN_COMSCORE_PLUGIN_EVENT, payload));
   }
 }
