@@ -48,15 +48,6 @@ export default class Comscore extends BasePlugin {
   constructor(name: string, player: Player, config: Object) {
     super(name, player, config);
 
-    this._init();
-  }
-
-  /**
-   * Initializing the plugin.
-   * @private
-   * @returns {void}
-   */
-  _init(): void {
     this._gPlugin = null;
     this._lastKnownPosition = NaN;
     this._lastKnownAdPosition = NaN;
@@ -87,7 +78,7 @@ export default class Comscore extends BasePlugin {
       this._gPlugin = new ns_.StreamingAnalytics.Plugin(pluginConfig, Comscore.PLUGIN_PLATFORM_NAME, Comscore.PLUGIN_VERSION, window.KalturaPlayer.VERSION, {
         position: this._getCurrentPosition.bind(this)
       });
-      
+
       this._setInitialPlayerData();
 
       this._gPluginPromise.resolve();
