@@ -18,7 +18,7 @@ export default class Comscore extends BasePlugin {
   _adNumber: Number;
   _adBreakNumber: Number;
   _isPlaybackLifeCycleStarted: boolean;
-  _continuousPlaybackSession: boolean;
+  _trackAsSinglePlaybackSession: boolean;
 
   _gPluginPromise: Promise<*>;
 
@@ -27,7 +27,7 @@ export default class Comscore extends BasePlugin {
   static PLUGIN_COMSCORE_PLUGIN_EVENT = "CS_COMSCORE_STA";
 
   // Settings
-  static SETTING_CONTINUOUS_PLAYBACK_SESSION = "continuousPlaybackSession";
+  static SETTING_TRACK_AS_SINGLE_PLAYBACK_SESSION = "trackAsSinglePlaybackSession";
 
   /**
    * @static
@@ -379,7 +379,7 @@ export default class Comscore extends BasePlugin {
   }
 
   _onSourceSelected(): void {
-    if(!this._continuousPlaybackSession) {
+    if(!this._trackAsSinglePlaybackSession) {
       this._gPlugin.createPlaybackSession();
     }
 
@@ -601,7 +601,7 @@ export default class Comscore extends BasePlugin {
   _parsePluginConfig(pluginConfig): Object {
     const comScorePluginSettings = Object.assign({}, pluginConfig);
 
-    this._continuousPlaybackSession = comScorePluginSettings[Comscore.SETTING_CONTINUOUS_PLAYBACK_SESSION];
+    this._trackAsSinglePlaybackSession = comScorePluginSettings[Comscore.SETTING_TRACK_AS_SINGLE_PLAYBACK_SESSION];
 
     return comScorePluginSettings;
   }
