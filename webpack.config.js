@@ -25,7 +25,7 @@ if (PROD) {
 module.exports = {
   context: __dirname + "/src",
   entry: {
-    "playkit-js-comscore": "index.js"
+    "playkit-comscore": "index.js"
   },
   output: {
     path: __dirname + "/dist",
