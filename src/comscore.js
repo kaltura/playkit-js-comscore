@@ -1,5 +1,5 @@
 // @flow
-import {BasePlugin, MediaType, Utils} from 'playkit-js'
+import {BasePlugin, MediaType, Utils, FakeEvent, Error} from 'playkit-js'
 import ns_ from "../bin/streamsense.plugin.min.js"
 
 /**
@@ -7,7 +7,6 @@ import ns_ from "../bin/streamsense.plugin.min.js"
  * @classdesc
  */
 export default class Comscore extends BasePlugin {
-  _trackEventMonitorCallbackName: string;
   _gPlugin: Object;
   _lastKnownPosition: Number;
   _lastKnownAdPosition: Number;
@@ -19,11 +18,16 @@ export default class Comscore extends BasePlugin {
   _adNumber: Number;
   _adBreakNumber: Number;
   _isPlaybackLifeCycleStarted: boolean;
+  _trackAsSinglePlaybackSession: boolean;
 
   _gPluginPromise: Promise<*>;
 
   static PLUGIN_VERSION = "2.0.0";
   static PLUGIN_PLATFORM_NAME = "kalturav3";
+  static PLUGIN_COMSCORE_PLUGIN_EVENT = "CS_COMSCORE_STA";
+
+  // Settings
+  static SETTING_TRACK_AS_SINGLE_PLAYBACK_SESSION = "trackAsSinglePlaybackSession";
 
   /**
    * @static
@@ -44,17 +48,6 @@ export default class Comscore extends BasePlugin {
   constructor(name: string, player: Player, config: Object) {
     super(name, player, config);
 
-    this._trackEventMonitorCallbackName = config.trackEventMonitor;
-
-    this._init();
-  }
-
-  /**
-   * Initializing the plugin.
-   * @private
-   * @returns {void}
-   */
-  _init(): void {
     this._gPlugin = null;
     this._lastKnownPosition = NaN;
     this._lastKnownAdPosition = NaN;
@@ -70,12 +63,18 @@ export default class Comscore extends BasePlugin {
 
     this._gPluginPromise = Utils.Object.defer();
 
+    // Plugin's this.config is not available until the player triggers the ready event.
     this.player.ready().then(() => {
       this.logger.debug("The comScore onReady event was triggered.");
 
       let pluginConfig = this._parsePluginConfig(this.config);
 
-      this._trackEventMonitor('Configured publisherId', pluginConfig['publisherId']);
+      this._logApiCall('StreamingAnalytics Generic Plugin', {
+        config: pluginConfig,
+        platform_name: Comscore.PLUGIN_PLATFORM_NAME,
+        plugin_version: Comscore.PLUGIN_VERSION,
+        player_version: window.KalturaPlayer.VERSION
+      });
 
       this._gPlugin = new ns_.StreamingAnalytics.Plugin(pluginConfig, Comscore.PLUGIN_PLATFORM_NAME, Comscore.PLUGIN_VERSION, window.KalturaPlayer.VERSION, {
         position: this._getCurrentPosition.bind(this)
@@ -86,6 +85,8 @@ export default class Comscore extends BasePlugin {
       this._gPluginPromise.resolve();
     });
 
+    // We start listening for all the events,
+    // but we will consume them once the plugin is initialised by queueing them using a promise.
     this._addBindings();
   }
 
@@ -138,7 +139,7 @@ export default class Comscore extends BasePlugin {
     for (const [eventName, listener] of Object.entries(listeners)) {
       this.eventManager.listen(this.player, eventName, (event) => {
         this._gPluginPromise.then(() => {
-          this._log("Event:", eventName, event);
+          this.logger.debug("comScore Plugin event:", eventName, event);
 
           listener.call(this, event);
         });
@@ -149,7 +150,7 @@ export default class Comscore extends BasePlugin {
   _onError(event): void {
     let fatal = false;
 
-    if(event.payload && event.payload.severity == 2)
+    if(event.payload && event.payload.severity === Error.Severity.CRITICAL)
       fatal = true;
 
     // Somtimes we've observed the payload object does not exist.
@@ -314,6 +315,9 @@ export default class Comscore extends BasePlugin {
       let dvrWindowLength = Math.floor(this.player.duration * 1000);
       let dvrWindowOffsetPosition = Math.max(dvrWindowLength - Math.floor(this.player.currentTime * 1000), 0);
 
+      this._logApiCall('setDvrWindowOffset', dvrWindowOffsetPosition);
+      this._logApiCall('setDvrWindowLength', dvrWindowLength);
+
       this._gPlugin.setDvrWindowOffset(dvrWindowOffsetPosition);
       this._gPlugin.setDvrWindowLength(dvrWindowLength);
 
@@ -326,6 +330,8 @@ export default class Comscore extends BasePlugin {
   _onRateChange(): void {
     const playbackRate = this.player.playbackRate;
 
+    this._logApiCall('notifyChangePlaybackRate', playbackRate);
+
     this._gPlugin.notifyChangePlaybackRate(playbackRate);
   }
 
@@ -334,8 +340,7 @@ export default class Comscore extends BasePlugin {
 
     let bandwidth = event.payload.selectedVideoTrack._bandwidth;
 
-    this.logger.debug('comScore notification: notifyChangeBitrate with', bandwidth);
-    this._trackEventMonitor('notifyChangeBitrate with', bandwidth);
+    this._logApiCall('notifyChangeAudioTrack', bandwidth);
 
     this._gPlugin.notifyChangeBitrate(bandwidth);
   }
@@ -345,8 +350,7 @@ export default class Comscore extends BasePlugin {
 
     let trackName = event.payload.selectedAudioTrack._language;
 
-    this.logger.debug('comScore notification: notifyChangeAudioTrack with', trackName);
-    this._trackEventMonitor('notifyChangeAudioTrack with', trackName);
+    this._logApiCall('notifyChangeAudioTrack', trackName);
 
     this._gPlugin.notifyChangeAudioTrack(trackName);
   }
@@ -356,8 +360,7 @@ export default class Comscore extends BasePlugin {
 
     let trackName = event.payload.selectedTextTrack._language;
 
-    this.logger.debug('comScore notification: notifyChangeSubtitleTrack with', trackName);
-    this._trackEventMonitor('notifyChangeSubtitleTrack with', trackName);
+    this._logApiCall('notifyChangeSubtitleTrack', trackName);
 
     this._gPlugin.notifyChangeSubtitleTrack(trackName);
   }
@@ -376,9 +379,12 @@ export default class Comscore extends BasePlugin {
   }
 
   _onSourceSelected(): void {
+    if(!this._trackAsSinglePlaybackSession) {
+      this._gPlugin.createPlaybackSession();
+    }
+
     this._isLive = this.player.isLive();
 
-    this._gPlugin.createPlaybackSession();
     this._gPlugin.setAsset(this._getContentMetadataLabels(this.player.config), false, this._getContentMetadataObjects());
 
     if(this._isLive) {
@@ -389,8 +395,7 @@ export default class Comscore extends BasePlugin {
   _updateWindowState(): void {
     let windowState = this.player.isFullscreen() ? 'full' : 'norm';
 
-    this.logger.debug('comScore notification: notifyChangeWindowState with:', windowState);
-    this._trackEventMonitor('notifyChangeWindowState with:', windowState);
+    this._logApiCall('notifyChangeWindowState', windowState);
 
     this._gPlugin.notifyChangeWindowState( windowState );
   }
@@ -398,8 +403,7 @@ export default class Comscore extends BasePlugin {
   _updatePlayerVolume(): void {
     let newPlayerVolume = this.player.muted ? 0 : Math.floor( this.player.volume * 100 );
 
-    this.logger.debug('comScore change notification: notifyChangeVolume with', newPlayerVolume);
-    this._trackEventMonitor('notifyChangeVolume with', newPlayerVolume);
+    this._logApiCall('notifyChangeVolume', newPlayerVolume);
 
     this._gPlugin.notifyChangeVolume(newPlayerVolume);
   }
@@ -410,8 +414,10 @@ export default class Comscore extends BasePlugin {
   }
 
   _sendCommand(notifyCommandName: string, position: Number, labels: object): void {
-    this.logger.debug("comScore notification:", notifyCommandName, 'with position:', position, 'with event labels:', labels);
-    this._trackEventMonitor(notifyCommandName, 'with position:', (position == null ? 'no-position' : position), 'with event labels:', labels);
+    this._logApiCall(notifyCommandName, {
+      position: position,
+      labels: labels
+    });
 
     try {
       this._gPlugin[notifyCommandName](position, labels);
@@ -438,20 +444,19 @@ export default class Comscore extends BasePlugin {
   }
 
   /**
-   * Resets the plugin.
+   * Resets the plugin. It will be executed:
+   * 1. loadMedia is called. E.g. media change
+   * 2. when the reset API method is called - it stops the current playback and should basically unload the current session.
+   *
+   * Because we are not able to distinguish between the 1st from the 2nd
+   * this plugin method will only handle the 1st scenario, ignoring the 2nd.
+   *
    * @override
    * @public
    * @returns {void}
    */
   reset(): void {
-    this.logger.debug("comScore plugin is being reset");
-
-    if(this._gPlugin){
-      this._gPlugin.release();
-      this._gPlugin = null;
-    }
-
-    this._init();
+    this.logger.debug("comScore plugin is ignoring the reset.");
   }
 
   _getAdvertisementMetadataLabels(advertisementMetadataObject, relatedContentMetadataObject): Object {
@@ -596,23 +601,26 @@ export default class Comscore extends BasePlugin {
   _parsePluginConfig(pluginConfig): Object {
     const comScorePluginSettings = Object.assign({}, pluginConfig);
 
+    this._trackAsSinglePlaybackSession = comScorePluginSettings[Comscore.SETTING_TRACK_AS_SINGLE_PLAYBACK_SESSION];
+
     return comScorePluginSettings;
   }
 
-  _log(): void {
+  _logApiCall(methodName, methodArgs): void {
     const args = Array.from(arguments);
     args.unshift("comScore plugin:");
 
     this.logger.debug.apply(this.logger, args);
-    // this.logger.debug("The comScore onReady event was triggered.");
+
+    this._logNotify(methodName, methodArgs)
   }
 
-  _trackEventMonitor(): void {
-    if(typeof window[this._trackEventMonitorCallbackName] != 'function') return;
+  _logNotify(methodName, methodArgs): void {
+    let payload = {
+      api: methodName,
+      args: methodArgs
+    };
 
-    const args = Array.from(arguments);
-    args.unshift('comScore');
-
-    window[this._trackEventMonitorCallbackName](args);
+    this.player.dispatchEvent(new FakeEvent(Comscore.PLUGIN_COMSCORE_PLUGIN_EVENT, payload));
   }
 }
