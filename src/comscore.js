@@ -324,7 +324,7 @@ export default class Comscore extends BasePlugin {
   }
 
   _onRateChange(): void {
-    const playbackRate = this.player.playbackRate;
+    const playbackRate = this.player.playbackRate * 100;
 
     this._gPlugin.notifyChangePlaybackRate(playbackRate);
   }
