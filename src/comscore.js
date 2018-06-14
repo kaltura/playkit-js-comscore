@@ -113,14 +113,12 @@ export default class Comscore extends BasePlugin {
       [this.player.Event.TIME_UPDATE]: this._onTimeUpdate,
       [this.player.Event.RATE_CHANGE]: this._onRateChange,
       [this.player.Event.PLAYER_STATE_CHANGED]: this._onPlayerStateChanged,
-
       [this.player.Event.VIDEO_TRACK_CHANGED]: this._onVideoTrackChanged,
       [this.player.Event.AUDIO_TRACK_CHANGED]: this._onAudioTrackChanged,
       [this.player.Event.TEXT_TRACK_CHANGED]: this._onTextTrackChanged,
       [this.player.Event.ENTER_FULLSCREEN]: this._onEnterFullscreen,
       [this.player.Event.EXIT_FULLSCREEN]: this._onExitFullScreen,
       [this.player.Event.VOLUME_CHANGE]: this._onVolumeChange,
-
       [this.player.Event.AD_LOADED]: this._onAdLoaded,
       [this.player.Event.AD_STARTED]: this._onAdStarted,
       [this.player.Event.AD_RESUMED]: this._onAdResumed,
@@ -138,8 +136,9 @@ export default class Comscore extends BasePlugin {
     for (const [eventName, listener] of Object.entries(listeners)) {
       this.eventManager.listen(this.player, eventName, (event) => {
         this._gPluginPromise.then(() => {
-          this._log("Event:", eventName, event);
-
+          if (eventName !== this.player.Event.TIME_UPDATE) {
+            this._log("Event:", eventName, event);
+          }
           listener.call(this, event);
         });
       });
