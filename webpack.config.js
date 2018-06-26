@@ -30,8 +30,9 @@ module.exports = {
   output: {
     path: __dirname + "/dist",
     filename: '[name].js',
-    library: ["playkit", "Comscore"],
+    library: ['KalturaPlayer', 'plugins', 'comscore'],
     libraryTarget: "umd",
+    umdNamedDefine: true,
     devtoolModuleFilenameTemplate: "./comscore/[resource-path]"
   },
   devtool: 'source-map',
