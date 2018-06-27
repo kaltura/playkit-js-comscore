@@ -76,7 +76,7 @@ export default class Comscore extends BasePlugin {
 
       this._trackEventMonitor('Configured publisherId', pluginConfig['publisherId']);
 
-      this._gPlugin = new ns_.StreamingAnalytics.Plugin(pluginConfig, Comscore.PLUGIN_PLATFORM_NAME, __VERSION__, window.KalturaPlayer.VERSION, {
+      this._gPlugin = new ns_.StreamingAnalytics.Plugin(pluginConfig, Comscore.PLUGIN_PLATFORM_NAME, Comscore.PLUGIN_VERSION, this.config.playerVersion, {
         position: this._getCurrentPosition.bind(this)
       });
 
