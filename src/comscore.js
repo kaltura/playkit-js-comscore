@@ -22,7 +22,6 @@ export default class Comscore extends BasePlugin {
 
   _gPluginPromise: Promise<*>;
 
-  static PLUGIN_VERSION = "2.0.0";
   static PLUGIN_PLATFORM_NAME = "kalturav3";
 
   /**
@@ -77,7 +76,7 @@ export default class Comscore extends BasePlugin {
 
       this._trackEventMonitor('Configured publisherId', pluginConfig['publisherId']);
 
-      this._gPlugin = new ns_.StreamingAnalytics.Plugin(pluginConfig, Comscore.PLUGIN_PLATFORM_NAME, Comscore.PLUGIN_VERSION, window.KalturaPlayer.VERSION, {
+      this._gPlugin = new ns_.StreamingAnalytics.Plugin(pluginConfig, Comscore.PLUGIN_PLATFORM_NAME, Comscore.PLUGIN_VERSION, this.config.playerVersion, {
         position: this._getCurrentPosition.bind(this)
       });
 
