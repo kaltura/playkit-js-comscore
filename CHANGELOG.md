@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.1.0"></a>
+# [2.1.0](https://github.com/kaltura/playkit-js-comscore/compare/v1.0.4...v2.1.0) (2018-06-28)
+
+
+### Bug Fixes
+
+* **FEC-8356:** pass player version string via config ([#15](https://github.com/kaltura/playkit-js-comscore/issues/15)) ([7d0f2a0](https://github.com/kaltura/playkit-js-comscore/commit/7d0f2a0))
+
+
+### Features
+
+* **FEC-8329:** support require-js imports ([#14](https://github.com/kaltura/playkit-js-comscore/issues/14)) ([a54771a](https://github.com/kaltura/playkit-js-comscore/commit/a54771a))
+
+
+
 <a name="1.0.4"></a>
 ## [1.0.4](https://github.com/kaltura/playkit-js-comscore/compare/v1.0.3...v1.0.4) (2018-05-24)
 
