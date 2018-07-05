@@ -23,6 +23,7 @@ export default class Comscore extends BasePlugin {
   _gPluginPromise: Promise<*>;
 
   static PLUGIN_PLATFORM_NAME = "kalturav3";
+  static PLUGIN_VERSION = __VERSION__;
 
   /**
    * @static
