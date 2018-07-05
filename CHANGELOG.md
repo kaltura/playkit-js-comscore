@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.1.2"></a>
+## [2.1.2](https://github.com/kaltura/playkit-js-comscore/compare/v2.1.0...v2.1.2) (2018-07-05)
+
+
+### Bug Fixes
+
+* **FEC-8383:** ns_st_pv (plugin version) is missing ([#17](https://github.com/kaltura/playkit-js-comscore/issues/17)) ([719c42d](https://github.com/kaltura/playkit-js-comscore/commit/719c42d))
+
+
+
 <a name="2.1.0"></a>
 # [2.1.0](https://github.com/kaltura/playkit-js-comscore/compare/v1.0.4...v2.1.0) (2018-06-28)
 
