@@ -112,7 +112,6 @@ export default class Comscore extends BasePlugin {
     let listeners = {
       [this.player.Event.SOURCE_SELECTED]: this._onSourceSelected,
       [this.player.Event.ERROR]: this._onError,
-      [this.player.Event.PLAYING]: this._onPlaying,
       [this.player.Event.SEEKING]: this._onSeeking,
       [this.player.Event.PAUSE]: this._onPause,
       [this.player.Event.ENDED]: this._onEnded,
@@ -266,6 +265,10 @@ export default class Comscore extends BasePlugin {
     if (newState.type === this.player.State.BUFFERING) {
       this._sendCommand('notifyBufferStart');
       this._isPlaybackLifeCycleStarted = true;
+    }
+
+    if (newState.type === this.player.State.PLAYING) {
+      this._onPlaying();
     }
   }
 
