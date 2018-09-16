@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.1.3"></a>
+## [2.1.3](https://github.com/kaltura/playkit-js-comscore/compare/v2.1.2...v2.1.3) (2018-09-16)
+
+
+### Bug Fixes
+
+* **FEC-8265:** 'playing' event is not sent after seek in IE/Edge [#20](https://github.com/kaltura/playkit-js-comscore/issues/20) ([97e653e](https://github.com/kaltura/playkit-js-comscore/commit/97e653e))
+
+
+
 <a name="2.1.2"></a>
 ## [2.1.2](https://github.com/kaltura/playkit-js-comscore/compare/v2.1.0...v2.1.2) (2018-07-05)
 
