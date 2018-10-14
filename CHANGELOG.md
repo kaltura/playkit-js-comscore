@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.1.4"></a>
+## [2.1.4](https://github.com/kaltura/playkit-js-comscore/compare/v2.1.3...v2.1.4) (2018-10-14)
+
+
+### Bug Fixes
+
+* **SUP-15792:** invalid localStorage access ([f533604](https://github.com/kaltura/playkit-js-comscore/commit/f533604))
+* reported playback rate ([#12](https://github.com/kaltura/playkit-js-comscore/issues/12)) ([3816d8f](https://github.com/kaltura/playkit-js-comscore/commit/3816d8f))
+
+
+
 <a name="2.1.3"></a>
 ## [2.1.3](https://github.com/kaltura/playkit-js-comscore/compare/v2.1.2...v2.1.3) (2018-09-16)
 
