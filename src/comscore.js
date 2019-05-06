@@ -173,11 +173,11 @@ export default class Comscore extends BasePlugin {
     this._adCachedAdvertisementMetadataObject = event.payload;
   }
 
-  _onAdBreakStart(): void {
+  _onAdBreakStart(event): void {
     this._isAd = true;
     this._adNumber = 0;
 
-    if (this._adCachedAdvertisementMetadataObject.adType == 'preroll' || this._adCachedAdvertisementMetadataObject.adType == 'postroll') {
+    if (event.payload.adBreak.type == 'preroll' || event.payload.adBreak.type == 'postroll') {
       this._adBreakNumber = 1;
     } else {
       this._adBreakNumber++;
