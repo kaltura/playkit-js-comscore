@@ -1,5 +1,5 @@
 // @flow
-import {BasePlugin, MediaType, Utils} from 'playkit-js';
+import {BasePlugin, MediaType, Utils, AdBreakType, Error} from 'playkit-js';
 import ns_ from '../bin/streamsense.plugin.min.js';
 
 /**
@@ -153,7 +153,7 @@ export default class Comscore extends BasePlugin {
   _onError(event): void {
     let fatal = false;
 
-    if (event.payload && event.payload.severity == 2) fatal = true;
+    if (event.payload && event.payload.severity === Error.Severity.CRITICAL) fatal = true;
 
     // Somtimes we've observed the payload object does not exist.
     let code = (event.payload && event.payload.code) || null;
@@ -177,7 +177,8 @@ export default class Comscore extends BasePlugin {
     this._isAd = true;
     this._adNumber = 0;
 
-    if (event.payload.adBreak.type == 'preroll' || event.payload.adBreak.type == 'postroll') {
+    const adBreakType = event.payload.adBreak.type;
+    if (adBreakType === AdBreakType.PRE || adBreakType === AdBreakType.POST) {
       this._adBreakNumber = 1;
     } else {
       this._adBreakNumber++;
@@ -188,7 +189,7 @@ export default class Comscore extends BasePlugin {
     if (!this._adCachedAdvertisementMetadataObject || !this._isAd) return;
 
     // Based on what we've played, we will increase the part number at the end of the ad break.
-    this._isAdPreroll = this._adCachedAdvertisementMetadataObject.adType == 'preroll';
+    this._isAdPreroll = this.player.ads.getAdBreak().type === AdBreakType.PRE;
 
     this._adNumber++;
 
@@ -219,8 +220,8 @@ export default class Comscore extends BasePlugin {
     this._isPlaybackLifeCycleStarted = true;
   }
   _onAdCompleted(): void {
-    if (this._adCachedAdvertisementMetadataObject.extraAdData && this._adCachedAdvertisementMetadataObject.extraAdData.duration) {
-      let duration = Math.floor(this._adCachedAdvertisementMetadataObject.extraAdData.duration * 1000);
+    if (this._adCachedAdvertisementMetadataObject.ad && this._adCachedAdvertisementMetadataObject.ad.duration) {
+      let duration = Math.floor(this._adCachedAdvertisementMetadataObject.ad.duration * 1000);
       this._sendCommand('notifyEnd', duration);
     } else {
       this._sendCommand('notifyEnd');
@@ -468,7 +469,7 @@ export default class Comscore extends BasePlugin {
     const contentMetadataLabels = this._getContentMetadataLabels(relatedContentMetadataObject);
 
     const isLive = this.player.isLive(),
-      isAudio = this.player.config.sources.type == MediaType.AUDIO;
+      isAudio = this.player.config.sources.type === MediaType.AUDIO;
 
     const labelsToCopyFromContentMetadata = ['ns_st_ci', 'ns_st_pl', 'ns_st_pr', 'ns_st_ep'];
 
@@ -481,8 +482,8 @@ export default class Comscore extends BasePlugin {
     advertisementMetadataLabels['ns_st_pn'] = '1'; // Current part number of the ad. Always assume part 1.
     advertisementMetadataLabels['ns_st_tp'] = '1'; // Always assume ads have a total // Playlist title. of 1 parts.
 
-    if (advertisementMetadataObject.extraAdData && advertisementMetadataObject.extraAdData.duration) {
-      advertisementMetadataLabels['ns_st_cl'] = Math.floor(advertisementMetadataObject.extraAdData.duration * 1000);
+    if (advertisementMetadataObject.ad && advertisementMetadataObject.ad.duration) {
+      advertisementMetadataLabels['ns_st_cl'] = Math.floor(advertisementMetadataObject.ad.duration * 1000);
     }
 
     advertisementMetadataLabels['ns_st_an'] = this._adNumber + '';
@@ -495,13 +496,14 @@ export default class Comscore extends BasePlugin {
     }
 
     const contentTypeSuffix = isAudio ? 'aa' : 'va';
-    if (advertisementMetadataObject.adType == 'preroll') {
+    const adBreakType = this.player.ads.getAdBreak().type;
+    if (adBreakType === AdBreakType.PRE) {
       advertisementMetadataLabels['ns_st_ad'] = 'pre-roll';
       advertisementMetadataLabels['ns_st_ct'] = contentTypeSuffix + (isLive ? '21' : '11');
-    } else if (advertisementMetadataObject.adType == 'postroll') {
+    } else if (adBreakType === AdBreakType.POST) {
       advertisementMetadataLabels['ns_st_ad'] = 'post-roll';
       advertisementMetadataLabels['ns_st_ct'] = contentTypeSuffix + (isLive ? '21' : '13');
-    } else if (advertisementMetadataObject.adType == 'midroll') {
+    } else if (adBreakType === AdBreakType.MID) {
       advertisementMetadataLabels['ns_st_ad'] = 'mid-roll';
       advertisementMetadataLabels['ns_st_ct'] = contentTypeSuffix + (isLive ? '21' : '12');
     } else {
@@ -509,16 +511,16 @@ export default class Comscore extends BasePlugin {
       advertisementMetadataLabels['ns_st_ad'] = 1;
     }
 
-    if (advertisementMetadataObject.extraAdData && advertisementMetadataObject.extraAdData.adId) {
-      advertisementMetadataLabels['ns_st_ami'] = advertisementMetadataObject.extraAdData.adId + '';
+    if (advertisementMetadataObject.ad && advertisementMetadataObject.ad.id) {
+      advertisementMetadataLabels['ns_st_ami'] = advertisementMetadataObject.ad.id + '';
     }
 
     if (advertisementMetadataObject.extraAdData && advertisementMetadataObject.extraAdData.adSystem) {
       advertisementMetadataLabels['ns_st_ams'] = advertisementMetadataObject.extraAdData.adSystem.toLowerCase();
     }
 
-    if (advertisementMetadataObject.extraAdData && advertisementMetadataObject.extraAdData.adTitle) {
-      advertisementMetadataLabels['ns_st_amt'] = advertisementMetadataObject.extraAdData.adTitle;
+    if (advertisementMetadataObject.ad && advertisementMetadataObject.ad.title) {
+      advertisementMetadataLabels['ns_st_amt'] = advertisementMetadataObject.ad.title;
     }
 
     return advertisementMetadataLabels;
@@ -531,7 +533,7 @@ export default class Comscore extends BasePlugin {
       contentMetadataLabels['ns_st_li'] = '1';
     }
 
-    if (this.player.config.sources.type == MediaType.AUDIO) {
+    if (this.player.config.sources.type === MediaType.AUDIO) {
       contentMetadataLabels['ns_st_ct'] = 'ac00';
       contentMetadataLabels['ns_st_ty'] = 'audio';
     } else {
@@ -561,7 +563,7 @@ export default class Comscore extends BasePlugin {
     if (this._isAd) {
       contentMetadataObject.push({
         prefix: '',
-        map: this._adCachedAdvertisementMetadataObject.extraAdData
+        map: this._adCachedAdvertisementMetadataObject.ad
       });
     } else {
       contentMetadataObject.push({
@@ -611,7 +613,7 @@ export default class Comscore extends BasePlugin {
   }
 
   _trackEventMonitor(): void {
-    if (typeof window[this._trackEventMonitorCallbackName] != 'function') return;
+    if (typeof window[this._trackEventMonitorCallbackName] !== 'function') return;
 
     const args = Array.from(arguments);
     args.unshift('comScore');
