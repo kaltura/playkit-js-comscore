@@ -511,16 +511,17 @@ export default class Comscore extends BasePlugin {
       advertisementMetadataLabels['ns_st_ad'] = 1;
     }
 
-    if (advertisementMetadataObject.ad && advertisementMetadataObject.ad.id) {
-      advertisementMetadataLabels['ns_st_ami'] = advertisementMetadataObject.ad.id + '';
+    if (advertisementMetadataObject.ad) {
+      if (advertisementMetadataObject.ad.id) {
+        advertisementMetadataLabels['ns_st_ami'] = advertisementMetadataObject.ad.id + '';
+      }
+      if (advertisementMetadataObject.ad.title) {
+        advertisementMetadataLabels['ns_st_amt'] = advertisementMetadataObject.ad.title;
+      }
     }
 
     if (advertisementMetadataObject.extraAdData && advertisementMetadataObject.extraAdData.adSystem) {
       advertisementMetadataLabels['ns_st_ams'] = advertisementMetadataObject.extraAdData.adSystem.toLowerCase();
-    }
-
-    if (advertisementMetadataObject.ad && advertisementMetadataObject.ad.title) {
-      advertisementMetadataLabels['ns_st_amt'] = advertisementMetadataObject.ad.title;
     }
 
     return advertisementMetadataLabels;
