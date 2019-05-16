@@ -518,10 +518,9 @@ export default class Comscore extends BasePlugin {
       if (advertisementMetadataObject.ad.title) {
         advertisementMetadataLabels['ns_st_amt'] = advertisementMetadataObject.ad.title;
       }
-    }
-
-    if (advertisementMetadataObject.extraAdData && advertisementMetadataObject.extraAdData.adSystem) {
-      advertisementMetadataLabels['ns_st_ams'] = advertisementMetadataObject.extraAdData.adSystem.toLowerCase();
+      if (advertisementMetadataObject.ad.system) {
+        advertisementMetadataLabels['ns_st_amt'] = advertisementMetadataObject.ad.system;
+      }
     }
 
     return advertisementMetadataLabels;
