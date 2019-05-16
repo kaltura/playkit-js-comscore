@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.1.5"></a>
+## [2.1.5](https://github.com/kaltura/playkit-js-comscore/compare/v2.1.4...v2.1.5) (2019-05-16)
+
+
+### Bug Fixes
+
+* **FEC-9062:** comscore fails with IMA DAI ([#22](https://github.com/kaltura/playkit-js-comscore/issues/22)) ([0c385b7](https://github.com/kaltura/playkit-js-comscore/commit/0c385b7))
+
+
+
 <a name="2.1.4"></a>
 ## [2.1.4](https://github.com/kaltura/playkit-js-comscore/compare/v2.1.3...v2.1.4) (2018-10-14)
 
