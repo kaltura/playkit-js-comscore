@@ -1,6 +1,8 @@
 // @flow
-import {BasePlugin, MediaType, Utils, AdBreakType, Error} from 'playkit-js';
+import {BasePlugin, MediaType, Utils, AdBreakType, Error, FakeEvent} from '@playkit-js/playkit-js';
 import ns_ from '../bin/streamsense.plugin.min.js';
+
+declare var __VERSION__: string;
 
 /**
  * Your class description.
@@ -9,18 +11,18 @@ import ns_ from '../bin/streamsense.plugin.min.js';
 export default class Comscore extends BasePlugin {
   _trackEventMonitorCallbackName: string;
   _gPlugin: Object;
-  _lastKnownPosition: Number;
-  _lastKnownAdPosition: Number;
-  _contentPartNumber: Number;
+  _lastKnownPosition: number;
+  _lastKnownAdPosition: number;
+  _contentPartNumber: number;
   _isAd: boolean = false;
   _isLive: boolean = false;
   _adCachedAdvertisementMetadataObject: Object;
   _isAdPreroll: boolean;
-  _adNumber: Number;
-  _adBreakNumber: Number;
+  _adNumber: number;
+  _adBreakNumber: number;
   _isPlaybackLifeCycleStarted: boolean;
 
-  _gPluginPromise: Promise<*>;
+  _gPluginPromise: ?DeferredPromise;
 
   static PLUGIN_PLATFORM_NAME = 'kalturav3';
   static PLUGIN_VERSION = __VERSION__;
@@ -41,7 +43,7 @@ export default class Comscore extends BasePlugin {
    * @param {Player} player - The player instance.
    * @param {Object} config - The plugin config.
    */
-  constructor(name: string, player: Player, config: Object) {
+  constructor(name: string, player: Player, config: any) {
     super(name, player, config);
 
     this._trackEventMonitorCallbackName = config.trackEventMonitor;
@@ -89,13 +91,15 @@ export default class Comscore extends BasePlugin {
 
       this._setInitialPlayerData();
 
-      this._gPluginPromise.resolve();
+      if (this._gPluginPromise) {
+        this._gPluginPromise.resolve();
+      }
     });
 
     this._addBindings();
   }
 
-  _getCurrentPosition(): void {
+  _getCurrentPosition(): number {
     if (this._isAd) {
       return this._lastKnownAdPosition;
     }
@@ -138,24 +142,27 @@ export default class Comscore extends BasePlugin {
       [this.player.Event.AD_PROGRESS]: this._onAdProgress
     };
 
-    for (const [eventName, listener] of Object.entries(listeners)) {
+    for (const [eventName: string, listener: (event: FakeEvent) => void] of Object.entries(listeners)) {
       this.eventManager.listen(this.player, eventName, event => {
-        this._gPluginPromise.then(() => {
-          if (eventName !== this.player.Event.TIME_UPDATE) {
-            this._log('Event:', eventName, event);
-          }
-          listener.call(this, event);
-        });
+        this._gPluginPromise &&
+          this._gPluginPromise.then(() => {
+            if (eventName !== this.player.Event.TIME_UPDATE) {
+              this._log('Event:', eventName, event);
+            }
+            if (typeof listener === 'function') {
+              listener.call(this, event);
+            }
+          });
       });
     }
   }
 
-  _onError(event): void {
+  _onError(event: Object): void {
     let fatal = false;
 
     if (event.payload && event.payload.severity === Error.Severity.CRITICAL) fatal = true;
 
-    // Somtimes we've observed the payload object does not exist.
+    // Sometimes we've observed the payload object does not exist.
     let code = (event.payload && event.payload.code) || null;
 
     if (fatal && this._isPlaybackLifeCycleStarted) {
@@ -169,11 +176,11 @@ export default class Comscore extends BasePlugin {
     }
   }
 
-  _onAdLoaded(event): void {
+  _onAdLoaded(event: FakeEvent): void {
     this._adCachedAdvertisementMetadataObject = event.payload;
   }
 
-  _onAdBreakStart(event): void {
+  _onAdBreakStart(event: FakeEvent): void {
     this._isAd = true;
     this._adNumber = 0;
 
@@ -184,6 +191,7 @@ export default class Comscore extends BasePlugin {
       this._adBreakNumber++;
     }
   }
+
   _onAdStarted(): void {
     // This should never happen.
     if (!this._adCachedAdvertisementMetadataObject || !this._isAd) return;
@@ -203,22 +211,27 @@ export default class Comscore extends BasePlugin {
 
     this._isPlaybackLifeCycleStarted = true;
   }
+
   _onAdResumed(): void {
     this._sendCommand('notifyPlay');
 
     this._isPlaybackLifeCycleStarted = true;
   }
+
   _onAdPaused(): void {
     this._sendCommand('notifyPause');
 
     this._isPlaybackLifeCycleStarted = true;
   }
+
   _onAdClicked(): void {}
+
   _onAdSkipped(): void {
     this._sendCommand('notifySkipAd');
 
     this._isPlaybackLifeCycleStarted = true;
   }
+
   _onAdCompleted(): void {
     if (this._adCachedAdvertisementMetadataObject.ad && this._adCachedAdvertisementMetadataObject.ad.duration) {
       let duration = Math.floor(this._adCachedAdvertisementMetadataObject.ad.duration * 1000);
@@ -230,6 +243,7 @@ export default class Comscore extends BasePlugin {
     this._lastKnownAdPosition = NaN;
     this._isPlaybackLifeCycleStarted = false;
   }
+
   _onAdError(): void {
     // TODO
   }
@@ -250,11 +264,12 @@ export default class Comscore extends BasePlugin {
     // We've finished with the ad break, moving back to content asset.
     this._gPlugin.setAsset(this._getContentMetadataLabels(this.player.config), false, this._getContentMetadataObjects());
   }
-  _onAdProgress(event): void {
+
+  _onAdProgress(event: FakeEvent): void {
     this._lastKnownAdPosition = Math.floor(event.payload.adProgress.currentTime);
   }
 
-  _onPlayerStateChanged(event): void {
+  _onPlayerStateChanged(event: FakeEvent): void {
     const oldState = event.payload.oldState;
     const newState = event.payload.newState;
 
@@ -283,7 +298,7 @@ export default class Comscore extends BasePlugin {
       this._sendCommand('notifySeekStart');
 
       let dvrWindowLength = Math.floor(this.player.duration * 1000);
-      let dvrWindowOffsetPosition = Math.floor(dvrWindowLength - Math.floor(this.player.currentTime * 1000), 0);
+      let dvrWindowOffsetPosition = Math.floor(dvrWindowLength - Math.floor(this.player.currentTime * 1000));
 
       this._gPlugin.setDvrWindowOffset(dvrWindowOffsetPosition);
       this._gPlugin.setDvrWindowLength(dvrWindowLength);
@@ -340,7 +355,7 @@ export default class Comscore extends BasePlugin {
     this._gPlugin.notifyChangePlaybackRate(playbackRate);
   }
 
-  _onVideoTrackChanged(event): void {
+  _onVideoTrackChanged(event: FakeEvent): void {
     if (!event.payload || !event.payload.selectedVideoTrack) return;
 
     let bandwidth = event.payload.selectedVideoTrack._bandwidth;
@@ -351,7 +366,7 @@ export default class Comscore extends BasePlugin {
     this._gPlugin.notifyChangeBitrate(bandwidth);
   }
 
-  _onAudioTrackChanged(event): void {
+  _onAudioTrackChanged(event: FakeEvent): void {
     if (!event.payload || !event.payload.selectedAudioTrack) return;
 
     let trackName = event.payload.selectedAudioTrack._language;
@@ -362,7 +377,7 @@ export default class Comscore extends BasePlugin {
     this._gPlugin.notifyChangeAudioTrack(trackName);
   }
 
-  _onTextTrackChanged(event): void {
+  _onTextTrackChanged(event: FakeEvent): void {
     if (!event.payload || !event.payload.selectedTextTrack) return;
 
     let trackName = event.payload.selectedTextTrack._language;
@@ -419,7 +434,7 @@ export default class Comscore extends BasePlugin {
     this._updateWindowState();
   }
 
-  _sendCommand(notifyCommandName: string, position: Number, labels: object): void {
+  _sendCommand(notifyCommandName: string, position?: number, labels?: Object): void {
     this.logger.debug('comScore notification:', notifyCommandName, 'with position:', position, 'with event labels:', labels);
     this._trackEventMonitor(notifyCommandName, 'with position:', position == null ? 'no-position' : position, 'with event labels:', labels);
 
@@ -464,7 +479,7 @@ export default class Comscore extends BasePlugin {
     this._init();
   }
 
-  _getAdvertisementMetadataLabels(advertisementMetadataObject, relatedContentMetadataObject): Object {
+  _getAdvertisementMetadataLabels(advertisementMetadataObject: Object, relatedContentMetadataObject: Object): Object {
     const advertisementMetadataLabels = {};
     const contentMetadataLabels = this._getContentMetadataLabels(relatedContentMetadataObject);
 
@@ -526,7 +541,7 @@ export default class Comscore extends BasePlugin {
     return advertisementMetadataLabels;
   }
 
-  _getContentMetadataLabels(contentMetadataObject): Object {
+  _getContentMetadataLabels(contentMetadataObject: Object): Object {
     let contentMetadataLabels = {};
 
     if (this.player.isLive()) {
@@ -598,13 +613,13 @@ export default class Comscore extends BasePlugin {
    * @param {object} pluginConfig - Plugin configuration object.
    * @returns {object} The object to be consumed by the comScore Generic Plugin library.
    * */
-  _parsePluginConfig(pluginConfig): Object {
+  _parsePluginConfig(pluginConfig: Object): Object {
     const comScorePluginSettings = Object.assign({}, pluginConfig);
 
     return comScorePluginSettings;
   }
 
-  _log(): void {
+  _log(...params: Array<any>): void {
     const args = Array.from(arguments);
     args.unshift('comScore plugin:');
 
@@ -612,7 +627,7 @@ export default class Comscore extends BasePlugin {
     // this.logger.debug("The comScore onReady event was triggered.");
   }
 
-  _trackEventMonitor(): void {
+  _trackEventMonitor(...params: Array<any>): void {
     if (typeof window[this._trackEventMonitorCallbackName] !== 'function') return;
 
     const args = Array.from(arguments);

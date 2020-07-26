@@ -1,68 +1,65 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Title</title>
+    <script src="//qa-apache-php7.dev.kaltura.com/p/1091/sp/109100/embedPlaykitJs/uiconf_id/15214502/partner_id/1091"></script>
+    <!-- <script src="http://kgit.html5video.org/pulls/3751/modules/ComscoreStreamingTag/resources/bin/streamsense.plugin.min.js"></script> -->
+    <!--<script src="http://localhost/player.js"></script>-->
+    <script src="./playkit-js-comscore.js"></script>
+  </head>
 
-<head>
-  <meta charset="UTF-8">
-  <title>Title</title>
-  <script src="//qa-apache-php7.dev.kaltura.com/p/1091/sp/109100/embedPlaykitJs/uiconf_id/15214502/partner_id/1091"></script>
-  <!-- <script src="http://kgit.html5video.org/pulls/3751/modules/ComscoreStreamingTag/resources/bin/streamsense.plugin.min.js"></script> -->
-  <!--<script src="http://localhost/player.js"></script>-->
-  <script src="./playkit-js-comscore.js"></script>
-</head>
+  <body>
+    <input type="button" onclick="changeMedia()" value="Change Media" />
 
-<body>
-<input type="button" onclick="changeMedia()" value="Change Media"/>
+    <div id="player-placeholder" style="width: 640px; height: 360px;"></div>
+    <script>
+      var mediaInfo = {
+        entryId: '0_wifqaipd'
+      };
+      var playerConfig = {
+        logLevel: 'DEBUG',
+        targetId: 'player-placeholder',
+        provider: {
+          partnerId: 1091,
+          uiConfId: 15214502
+        },
+        player: {
+          playback: {
+            preload: 'none',
+            autoplay: false,
+            muted: false,
+            allowMutedAutoPlay: false,
+            useNativeTextTrack: false,
+            playsinline: false,
 
-<div id="player-placeholder" style="width: 640px; height: 360px;"></div>
-<script>
-  var mediaInfo = {
-    entryId: '0_wifqaipd',};
-  var playerConfig = {
-    logLevel: "DEBUG",
-    targetId:"player-placeholder",
-    provider:{
-      partnerId: 1091,
-      uiConfId: 15214502
-    },
-    player: {playback: {
-        "preload": "none",
-        "autoplay": false,
-        "muted": false,
-        "allowMutedAutoPlay": false,
-        "useNativeTextTrack": false,
-        "playsinline": false,
-
-
-        "options": {
-          "html5": {
-            "hls": {
+            options: {
+              html5: {
+                hls: {},
+                dash: {}
+              }
+            }
+          },
+          plugins: {
+            comscore: {
+              publisherId: '1000001',
+              debug: true
             },
-            "dash": {
+
+            ima: {
+              adTagUrl:
+                'http://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/124319096/external/ad_rule_samples&ciu_szs=300x250&ad_rule=1&impl=s&gdfp_req=1&env=vp&output=xml_vmap1&unviewed_position_start=1&cust_params=sample_ar%3Dpremidpost&cmsid=496&vid=short_onecue&correlator=[timestamp]'
             }
           }
-        } ,
-      },
-      plugins: {
-        comscore: {
-          publisherId: "1000001",
-          debug: true
-        },
-
-        ima: {
-          adTagUrl: 'http://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/124319096/external/ad_rule_samples&ciu_szs=300x250&ad_rule=1&impl=s&gdfp_req=1&env=vp&output=xml_vmap1&unviewed_position_start=1&cust_params=sample_ar%3Dpremidpost&cmsid=496&vid=short_onecue&correlator=[timestamp]'
         }
-      }}
-  };
+      };
 
+      var kalturaPlayer = KalturaPlayer.setup(playerConfig);
+      kalturaPlayer.loadMedia(mediaInfo);
 
-
-  var kalturaPlayer = KalturaPlayer.setup(playerConfig);
-  kalturaPlayer.loadMedia(mediaInfo);
-
-  function changeMedia(){
-    kalturaPlayer.loadMedia({entryId: '1_j09ivavh'});
-  }
-</script>
-</body>
-
+      function changeMedia() {
+        kalturaPlayer.loadMedia({entryId: '1_j09ivavh'});
+      }
+    </script>
+  </body>
 </html>
