@@ -142,7 +142,8 @@ export default class Comscore extends BasePlugin {
       [this.player.Event.AD_PROGRESS]: this._onAdProgress
     };
 
-    for (const [eventName: string, listener: (event: FakeEvent) => void] of Object.entries(listeners)) {
+    Object.keys(listeners).forEach((eventName: string) => {
+      const listener = listeners[eventName];
       this.eventManager.listen(this.player, eventName, event => {
         this._gPluginPromise &&
           this._gPluginPromise.then(() => {
@@ -154,7 +155,7 @@ export default class Comscore extends BasePlugin {
             }
           });
       });
-    }
+    });
   }
 
   _onError(event: Object): void {
@@ -619,7 +620,7 @@ export default class Comscore extends BasePlugin {
     return comScorePluginSettings;
   }
 
-  _log(...params: Array<any>): void {
+  _log(): void {
     const args = Array.from(arguments);
     args.unshift('comScore plugin:');
 
@@ -627,7 +628,7 @@ export default class Comscore extends BasePlugin {
     // this.logger.debug("The comScore onReady event was triggered.");
   }
 
-  _trackEventMonitor(...params: Array<any>): void {
+  _trackEventMonitor(): void {
     if (typeof window[this._trackEventMonitorCallbackName] !== 'function') return;
 
     const args = Array.from(arguments);
