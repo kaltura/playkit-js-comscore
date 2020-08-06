@@ -1,71 +1,68 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Title</title>
+    <script src="//qa-apache-php7.dev.kaltura.com/p/1091/sp/109100/embedPlaykitJs/uiconf_id/15214502/partner_id/1091"></script>
+    <!-- <script src="http://kgit.html5video.org/pulls/3751/modules/ComscoreStreamingTag/resources/bin/streamsense.plugin.min.js"></script> -->
+    <!--<script src="http://localhost/player.js"></script>-->
+    <script src="./playkit-js-comscore.js"></script>
+  </head>
 
-<head>
-  <meta charset="UTF-8">
-  <title>Title</title>
-  <script src="//qa-apache-php7.dev.kaltura.com/p/1091/sp/109100/embedPlaykitJs/uiconf_id/15214502/partner_id/1091"></script>
-  <!-- <script src="http://kgit.html5video.org/pulls/3751/modules/ComscoreStreamingTag/resources/bin/streamsense.plugin.min.js"></script> -->
-  <!--<script src="http://localhost/player.js"></script>-->
-  <script src="./playkit-js-comscore.js"></script>
-</head>
+  <body>
+    <div id="player-placeholder" style="width: 640px; height: 360px;"></div>
+    <script>
+      var mediaInfo = {
+        entryId: '0_dkiz5qwp'
+      };
+      var playerConfig = {
+        logLevel: 'DEBUG',
+        targetId: 'player-placeholder',
+        provider: {
+          partnerId: 1091,
+          uiConfId: 15214502
+        },
+        player: {
+          playback: {
+            preload: 'none',
+            autoplay: false,
+            muted: false,
+            allowMutedAutoPlay: false,
+            useNativeTextTrack: false,
+            playsinline: false,
 
-<body>
-<div id="player-placeholder" style="width: 640px; height: 360px;"></div>
-<script>
-  var mediaInfo = {
-    entryId: '0_dkiz5qwp',};
-  var playerConfig = {
-    logLevel: "DEBUG",
-    targetId:"player-placeholder",
-    provider:{
-      partnerId: 1091,
-      uiConfId: 15214502
-    },
-    player: {playback: {
-        "preload": "none",
-        "autoplay": false,
-        "muted": false,
-        "allowMutedAutoPlay": false,
-        "useNativeTextTrack": false,
-        "playsinline": false,
-
-
-        "options": {
-          "html5": {
-            "hls": {
+            options: {
+              html5: {
+                hls: {},
+                dash: {}
+              }
             },
-            "dash": {
+            streamPriority: [
+              {
+                engine: 'html5',
+                format: 'hls'
+              },
+              {
+                engine: 'html5',
+                format: 'dash'
+              },
+              {
+                engine: 'html5',
+                format: 'progressive'
+              }
+            ]
+          },
+          plugins: {
+            comscore: {
+              publisherId: '1000001',
+              debug: true
             }
           }
-        } ,
-        "streamPriority": [
-          {
-            "engine": "html5",
-            "format": "hls"
-          },
-          {
-            "engine": "html5",
-            "format": "dash"
-          },
-          {
-            "engine": "html5",
-            "format": "progressive"
-          }
-        ]
-      },
-      plugins: {
+        }
+      };
 
-        comscore: {
-          publisherId: "1000001",
-          debug: true
-        },
-      }}
-  };
-
-  var kalturaPlayer = KalturaPlayer.setup(playerConfig);
-  kalturaPlayer.loadMedia(mediaInfo);
-</script>
-</body>
-
+      var kalturaPlayer = KalturaPlayer.setup(playerConfig);
+      kalturaPlayer.loadMedia(mediaInfo);
+    </script>
+  </body>
 </html>

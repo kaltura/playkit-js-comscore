@@ -1,10 +1,10 @@
 import '../../src/index.js';
-import {loadPlayer} from 'playkit-js';
-import * as TestUtils from 'playkit-js/test/src/utils/test-utils';
+import {loadPlayer} from '@playkit-js/playkit-js';
+import * as TestUtils from '@playkit-js/playkit-js/test/src/utils/test-utils';
 
 const targetId = 'player-placeholder_js-comscore.spec';
 
-describe('JsComscorePlugin', function() {
+describe('JsComscorePlugin', function () {
   let player;
   const config = {
     sources: {
@@ -33,17 +33,17 @@ describe('JsComscorePlugin', function() {
     el.appendChild(player.getView());
   }
 
-  before(function() {
+  before(function () {
     createPlayerPlaceholder(targetId);
   });
 
-  afterEach(function() {
+  afterEach(function () {
     player.destroy();
     player = null;
     TestUtils.removeVideoElementsFromTestPage();
   });
 
-  after(function() {
+  after(function () {
     TestUtils.removeElement(targetId);
   });
 
