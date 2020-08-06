@@ -1,6 +1,14 @@
-# Change Log
+# Changelog
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
+
+## [2.2.0](https://github.com/kaltura/playkit-js-comscore/compare/v2.1.5...v2.2.0) (2020-08-06)
+
+
+### Features
+
+* **FEC-10057:** move the plugin manager to kaltura player ([#25](https://github.com/kaltura/playkit-js-comscore/issues/25)) ([f0cce5c](https://github.com/kaltura/playkit-js-comscore/commit/f0cce5ce11bf9f6422e4096134cfae41ecec22d0)), closes [kaltura/kaltura-player-js#332](https://github.com/kaltura/kaltura-player-js/issues/332)
+* **FEC-10290:** upgrade NPM packages ([#24](https://github.com/kaltura/playkit-js-comscore/issues/24)) ([dad4b58](https://github.com/kaltura/playkit-js-comscore/commit/dad4b584e4eda00b7f31aa7364436189af61ad2b))
 
 <a name="2.1.5"></a>
 ## [2.1.5](https://github.com/kaltura/playkit-js-comscore/compare/v2.1.4...v2.1.5) (2019-05-16)
