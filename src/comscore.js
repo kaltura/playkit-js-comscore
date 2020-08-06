@@ -1,6 +1,7 @@
 // @flow
-import {BasePlugin, MediaType, Utils, AdBreakType, Error, FakeEvent} from '@playkit-js/playkit-js';
+import {core, BasePlugin} from 'kaltura-player-js';
 import ns_ from '../bin/streamsense.plugin.min.js';
+const {MediaType, Utils, AdBreakType, Error, FakeEvent} = core;
 
 declare var __VERSION__: string;
 
