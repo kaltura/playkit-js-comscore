@@ -20,7 +20,6 @@ module.exports = {
     path: __dirname + '/dist',
     filename: '[name].js',
     library: ['KalturaPlayer', 'plugins', 'comscore'],
-    libraryTarget: 'umd',
     umdNamedDefine: true,
     devtoolModuleFilenameTemplate: './comscore/[resource-path]'
   },
@@ -51,11 +50,6 @@ module.exports = {
     modules: [path.resolve(__dirname, 'src'), 'node_modules']
   },
   externals: {
-    'kaltura-player-js': {
-      commonjs: 'kaltura-player-js',
-      commonjs2: 'kaltura-player-js',
-      amd: 'kaltura-player-js',
-      root: ['KalturaPlayer']
-    }
+    'kaltura-player-js': ['KalturaPlayer']
   }
 };
