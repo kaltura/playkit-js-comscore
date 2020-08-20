@@ -20,7 +20,6 @@ module.exports = {
     path: __dirname + '/dist',
     filename: '[name].js',
     library: ['KalturaPlayer', 'plugins', 'comscore'],
-    umdNamedDefine: true,
     devtoolModuleFilenameTemplate: './comscore/[resource-path]'
   },
   devtool: 'source-map',
