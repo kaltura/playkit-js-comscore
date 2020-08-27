@@ -14,7 +14,7 @@ describe('JsComscorePlugin', function () {
         {
           mimetype: 'video/mp4',
           url:
-            '//cfvod.kaltura.com/pd/p/1726172/sp/172617200/serveFlavor/entryId/1_po3v31zx/v/1/ev/7/flavorId/1_67zt1djx/fileName/BBB_(Basic_Small_-_WEB_MBL_(H264_400)).mp4/name/a.mp4'
+            'https://cfvod.kaltura.com/pd/p/1726172/sp/172617200/serveFlavor/entryId/1_po3v31zx/v/1/ev/7/flavorId/1_67zt1djx/fileName/BBB_(Basic_Small_-_WEB_MBL_(H264_400)).mp4/name/a.mp4'
         }
       ]
     },
@@ -33,7 +33,6 @@ describe('JsComscorePlugin', function () {
   function setupPlayer(config) {
     player = setup(config);
     const el = document.getElementById(targetId);
-    el.appendChild(player.getView());
   }
 
   before(function () {

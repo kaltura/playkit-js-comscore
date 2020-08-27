@@ -87,7 +87,7 @@
   },
   "peerDependencies": {
     "@playkit-js/playkit-js": "0.63.0",
-    "kaltura-player-js": "https://github.com/kaltura/kaltura-player-js.git#v0.56.0"
+    "kaltura-player-js": "https://github.com/kaltura/kaltura-player-js.git#v0.56.1"
   },
   "keywords": [],
   "license": "AGPL-3.0",
