@@ -149,7 +149,7 @@ export default class Comscore extends BasePlugin {
         this._gPluginPromise &&
           this._gPluginPromise.then(() => {
             if (eventName !== this.player.Event.TIME_UPDATE) {
-              this._log('Event:', eventName, event);
+              this.logger.debug('comScore plugin:', 'Event:', eventName, event);
             }
             if (typeof listener === 'function') {
               listener.call(this, event);
@@ -621,18 +621,9 @@ export default class Comscore extends BasePlugin {
     return comScorePluginSettings;
   }
 
-  _log(): void {
-    const args = Array.from(arguments);
-    args.unshift('comScore plugin:');
-
-    this.logger.debug.apply(this.logger, args);
-    // this.logger.debug("The comScore onReady event was triggered.");
-  }
-
-  _trackEventMonitor(): void {
+  _trackEventMonitor(...args: Array<any>): void {
     if (typeof window[this._trackEventMonitorCallbackName] !== 'function') return;
 
-    const args = Array.from(arguments);
     args.unshift('comScore');
 
     window[this._trackEventMonitorCallbackName](args);
