@@ -32,7 +32,6 @@ describe('JsComscorePlugin', function () {
 
   function setupPlayer(config) {
     player = setup(config);
-    const el = document.getElementById(targetId);
   }
 
   before(function () {
