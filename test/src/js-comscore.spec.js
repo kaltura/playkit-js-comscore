@@ -10,6 +10,9 @@ describe('JsComscorePlugin', function () {
     targetId,
     provider: {},
     sources: {
+      metadata: {
+        name: 'test'
+      },
       progressive: [
         {
           mimetype: 'video/mp4',
@@ -53,6 +56,9 @@ describe('JsComscorePlugin', function () {
     player.addEventListener(player.Event.PLAYING, () => {
       done();
     });
+    setTimeout(() => {
+      done('failed to play media');
+    }, 10000);
     player.play();
   });
 });
