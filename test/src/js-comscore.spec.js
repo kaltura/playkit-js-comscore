@@ -57,7 +57,7 @@ describe('JsComscorePlugin', function () {
       done();
     });
     setTimeout(() => {
-      done('failed to play media');
+      done(new Error('failed to play media'));
     }, 10000);
     player.play();
   });
