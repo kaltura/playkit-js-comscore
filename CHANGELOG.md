@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.2.1](https://github.com/kaltura/playkit-js-comscore/compare/v2.2.0...v2.2.1) (2020-09-07)
+
+
+### Bug Fixes
+
+* fix lint and tests for build ([#28](https://github.com/kaltura/playkit-js-comscore/issues/28)) ([beaa63a](https://github.com/kaltura/playkit-js-comscore/commit/beaa63a98d5b6bea9ff08d240899981362f03ba1))
+
 ## [2.2.0](https://github.com/kaltura/playkit-js-comscore/compare/v2.1.5...v2.2.0) (2020-08-06)
 
 
