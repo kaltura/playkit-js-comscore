@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.0.0](https://github.com/kaltura/playkit-js-comscore/compare/v2.2.0...v3.0.0) (2020-09-08)
+
+
+### ⚠ BREAKING CHANGES
+
+* **FEC-10347:** This package is not UMD anymore
+
+
+### Features
+
+* **FEC-10347:** expose kaltura player as a global variable instead of UMD ([#27](https://github.com/kaltura/playkit-js-comscore/issues/27)) ([1fbe523](https://github.com/kaltura/playkit-js-comscore/commit/1fbe5235ae1ef8185d0a3b2812da2a837ea696d4))
+
+
+### Bug Fixes
+
+* fix lint and tests for build ([#28](https://github.com/kaltura/playkit-js-comscore/issues/28)) ([beaa63a](https://github.com/kaltura/playkit-js-comscore/commit/beaa63a98d5b6bea9ff08d240899981362f03ba1))
+
 ### [2.2.3](https://github.com/kaltura/playkit-js-comscore/compare/v2.2.2...v2.2.3) (2020-09-08)
 
 ### [2.2.2](https://github.com/kaltura/playkit-js-comscore/compare/v2.2.1...v2.2.2) (2020-09-07)
