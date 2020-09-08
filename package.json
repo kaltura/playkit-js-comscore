@@ -30,11 +30,6 @@
   "publishConfig": {
     "access": "public"
   },
-  "standard-version": {
-    "scripts": {
-      "postbump": "yarn run build && npm run commit:dist"
-    }
-  },
   "devDependencies": {
     "@babel/cli": "^7.10.5",
     "@babel/core": "^7.10.5",
