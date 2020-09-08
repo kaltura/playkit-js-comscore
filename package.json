@@ -1,5 +1,5 @@
 {
-  "name": "playkit-js-comscore",
+  "name": "@playkit-js/playkit-js-comscore",
   "version": "2.2.2",
   "main": "dist/playkit-js-comscore.js",
   "scripts": {
@@ -26,6 +26,9 @@
       "prettier --write",
       "git add"
     ]
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "standard-version": {
     "scripts": {
