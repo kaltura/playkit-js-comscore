@@ -1,6 +1,8 @@
 # PlayKit JS Comscore - Comscore Plugin for the [Kaltura Player JS]
 
-[![Build Status](https://travis-ci.com/kaltura/playkit-js-comscore.svg?branch=master)](https://travis-ci.com/kaltura/playkit-js-comscore)[![](https://img.shields.io/npm/v/@playkit-js/playkit-js-comscore/latest.svg)](https://www.npmjs.com/package/@playkit-js/playkit-js-comscore)[![](https://img.shields.io/npm/v/@playkit-js/playkit-js-comscore/canary.svg)](https://www.npmjs.com/package/@playkit-js/playkit-js-comscore/v/canary)
+[![Build Status](https://github.com/kaltura/playkit-js-comscore/actions/workflows/run_canary_full_flow.yaml/badge.svg)](https://github.com/kaltura/playkit-js-comscore/actions/workflows/run_canary_full_flow.yaml)
+[![](https://img.shields.io/npm/v/@playkit-js/playkit-js-comscore/latest.svg)](https://www.npmjs.com/package/@playkit-js/playkit-js-comscore)
+[![](https://img.shields.io/npm/v/@playkit-js/playkit-js-comscore/canary.svg)](https://www.npmjs.com/package/@playkit-js/playkit-js-comscore/v/canary)
 
 PlayKit JS Comscore Engine integrates Comscore with the [PlayKit JS Player].
 
