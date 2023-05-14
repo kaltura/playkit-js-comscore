@@ -1,5 +1,5 @@
 import '../../src/index.js';
-import {setup} from 'kaltura-player-js';
+import {setup} from '@playkit-js/kaltura-player-js';
 import * as TestUtils from './utils/test-utils';
 
 const targetId = 'player-placeholder_js-comscore.spec';
