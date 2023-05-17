@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 3.0.3 (2023-05-17)
+
+
+### Bug Fixes
+
+* **FEC-13123:** replace travis with github actions [#71](https://github.com/kaltura/playkit-js-comscore/issues/71) ([b483ba4](https://github.com/kaltura/playkit-js-comscore/commit/b483ba47b6913333b22860402aca7931bc903ef3))
+
 ### 3.0.2 (2023-05-07)
 
 ### [3.0.1](https://github.com/kaltura/playkit-js-comscore/compare/v3.0.0...v3.0.1) (2020-11-03)
