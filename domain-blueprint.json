@@ -1,0 +1,85 @@
+{
+  "repositoryName": "playkit-js-comscore",
+  "coreResponsibility": "A Kaltura Player JS analytics plugin that integrates Comscore Streaming Analytics (StreamSense) to track and report video/audio playback events, ad interactions, and media consumption metrics to Comscore's measurement platform.",
+  "domainAndLogicOwnership": {
+    "featureOwnership": [
+      "Comscore StreamSense SDK integration",
+      "Video/Audio playback event tracking (play, pause, seek, buffer, end)",
+      "Ad tracking (pre-roll, mid-roll, post-roll)",
+      "Ad break state management",
+      "DVR/Live stream window offset tracking",
+      "Playback rate change notifications",
+      "Bitrate change notifications",
+      "Audio/Subtitle track change notifications",
+      "Volume and fullscreen state tracking",
+      "Content and advertisement metadata labeling (ns_st_* labels)"
+    ],
+    "dataHandling": [
+      "Comscore metadata labels (ns_st_ci, ns_st_cl, ns_st_ty, ns_st_li, ns_st_ct, ns_st_ad, etc.)",
+      "Playback position tracking (_lastKnownPosition, _lastKnownAdPosition)",
+      "Content part numbering for mid-roll ad breaks",
+      "Ad break sequencing (ad number, ad break number)",
+      "DVR window length and offset calculations",
+      "Player state machine events transformation to Comscore notifications"
+    ]
+  },
+  "integrationPoints": {
+    "upstream": [
+      "@playkit-js/kaltura-player-js (Kaltura Player core)",
+      "@playkit-js/playkit-js (PlayKit base plugin framework)",
+      "Kaltura Player ads module (IMA, DAI, or other ad plugins)"
+    ],
+    "downstream": [
+      "Comscore Streaming Analytics platform (data consumer)",
+      "Comscore StreamSense Plugin SDK (bin/streamsense.plugin.min.js)"
+    ],
+    "externalAPIs": [
+      "Comscore StreamSense Streaming Analytics SDK",
+      "Comscore ns_.StreamingAnalytics.Plugin API"
+    ]
+  },
+  "technicalStack": {
+    "primaryLanguages": [
+      "JavaScript (ES6+)",
+      "Flow (static type checking)"
+    ],
+    "frameworks": [
+      "PlayKit JS Plugin Framework",
+      "Kaltura Player JS"
+    ],
+    "buildTools": [
+      "Webpack",
+      "Babel",
+      "ESLint",
+      "Karma (testing)"
+    ],
+    "entryPoints": [
+      "src/index.js (plugin registration entry point)",
+      "src/comscore.js (main Comscore plugin class)",
+      "src/comscore-event-model.js (Comscore label constants)"
+    ],
+    "keyClasses": [
+      "Comscore (extends BasePlugin)"
+    ]
+  },
+  "triageKeywords": [
+    "comscore",
+    "streamsense",
+    "ns_st_",
+    "ns_st_ci",
+    "ns_st_cl",
+    "ns_st_ty",
+    "ns_st_li",
+    "ns_st_ad",
+    "ns_st_ct",
+    "analytics tracking",
+    "notifyPlay",
+    "notifyPause",
+    "notifyEnd",
+    "notifySeekStart",
+    "notifyBufferStart",
+    "DVR window offset",
+    "ad break tracking",
+    "StreamingAnalytics"
+  ]
+}
